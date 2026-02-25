@@ -103,6 +103,7 @@ const state = {
   jobs: {
     current: null,     // 'pilot' | 'masinis' | 'lifeguard' | 'taxi' | null
   },
+  city2Bots: null,   // initialized lazily when city 2 first loads
 };
 
 // ─── Utils ────────────────────────────────────────────────────────────────────
@@ -689,6 +690,7 @@ const WORLD_CITY2 = {
     { x: 196, y: 268, col: "#e06666" },
     { x: 484, y: 268, col: "#ff9800" },
   ],
+  soccer: { x: 122, y: 318, w: 184, h: 72 },
 };
 
 function drawCity2() {
@@ -711,12 +713,14 @@ function drawCity2() {
   drawWaterfall2();
   drawBeach2();
   drawAirport2();
+  drawSoccerField2();
   drawTrainTrack2();
   drawCity2Buildings();
   drawCity2Houses();
   drawAirplane2();
   drawTaxi2();
   drawTrain2();
+  drawCity2Bots();
   drawCity2Hints();
 }
 
@@ -866,6 +870,107 @@ function drawCity2Houses() {
     ctx.lineTo(h.x + 40, h.y);
     ctx.closePath();
     ctx.fill();
+  });
+}
+
+function drawSoccerField2() {
+  const sf = WORLD_CITY2.soccer;
+  const { x, y, w, h } = sf;
+  // Field grass
+  ctx.fillStyle = "#2e8b2e";
+  ctx.fillRect(x, y, w, h);
+  // Alternating grass stripes
+  ctx.fillStyle = "#297829";
+  for (let s = 0; s < 4; s++) {
+    ctx.fillRect(x + s * (w / 4), y, w / 8, h);
+  }
+  // White boundary lines
+  ctx.strokeStyle = "#fff";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(x + 2, y + 2, w - 4, h - 4);
+  // Center line
+  ctx.beginPath();
+  ctx.moveTo(x + w / 2, y + 2);
+  ctx.lineTo(x + w / 2, y + h - 2);
+  ctx.stroke();
+  // Center circle
+  ctx.beginPath();
+  ctx.arc(x + w / 2, y + h / 2, 14, 0, Math.PI * 2);
+  ctx.stroke();
+  // Center dot
+  ctx.fillStyle = "#fff";
+  ctx.beginPath();
+  ctx.arc(x + w / 2, y + h / 2, 2.5, 0, Math.PI * 2);
+  ctx.fill();
+  // Penalty boxes
+  ctx.strokeRect(x + 2, y + h / 2 - 16, 28, 32);
+  ctx.strokeRect(x + w - 30, y + h / 2 - 16, 28, 32);
+  // Goal areas (smaller boxes)
+  ctx.strokeRect(x + 2, y + h / 2 - 8, 14, 16);
+  ctx.strokeRect(x + w - 16, y + h / 2 - 8, 14, 16);
+  // Goals (left and right)
+  ctx.fillStyle = "#ddd";
+  ctx.fillRect(x - 9, y + h / 2 - 11, 9, 22);
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(x - 8, y + h / 2 - 10, 7, 20);
+  ctx.fillStyle = "#ddd";
+  ctx.fillRect(x + w, y + h / 2 - 11, 9, 22);
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(x + w + 1, y + h / 2 - 10, 7, 20);
+  // Goal nets (simple mesh hint)
+  ctx.strokeStyle = "rgba(255,255,255,0.4)";
+  ctx.lineWidth = 1;
+  for (let gi = 1; gi < 4; gi++) {
+    ctx.beginPath();
+    ctx.moveTo(x - 8, y + h / 2 - 10 + gi * 5);
+    ctx.lineTo(x - 1, y + h / 2 - 10 + gi * 5);
+    ctx.stroke();
+  }
+  for (let gi = 1; gi < 4; gi++) {
+    ctx.beginPath();
+    ctx.moveTo(x + w + 1, y + h / 2 - 10 + gi * 5);
+    ctx.lineTo(x + w + 8, y + h / 2 - 10 + gi * 5);
+    ctx.stroke();
+  }
+  ctx.lineWidth = 1;
+  // Label
+  ctx.fillStyle = "#fff";
+  ctx.font = "bold 9px monospace";
+  ctx.textAlign = "center";
+  ctx.fillText("⚽ Soccer Field", x + w / 2, y + h + 12);
+}
+
+function initCity2Bots() {
+  if (state.city2Bots) return;
+  // Each bot: name, starting x/y, body color, patrol minX/maxX, fixed y, speed, dir
+  state.city2Bots = [
+    // Beach walkers
+    { name: "Surfer",    x: 180, y: 391, color: "#52b788", minX:  70, maxX: 360, fixedY: 391, speed: 0.75, dir:  1 },
+    { name: "BeachKid",  x: 310, y: 391, color: "#ffd166", minX:  70, maxX: 360, fixedY: 391, speed: 0.90, dir: -1 },
+    { name: "Swimmer",   x: 530, y: 391, color: "#48cae4", minX: 380, maxX: 700, fixedY: 391, speed: 0.65, dir:  1 },
+    // School area
+    { name: "Student",   x: 350, y: 76,  color: "#a8d8ea", minX: 310, maxX: 430, fixedY:  76, speed: 0.60, dir:  1 },
+    { name: "Teacher",   x: 418, y: 76,  color: "#ffd166", minX: 310, maxX: 430, fixedY:  76, speed: 0.45, dir: -1 },
+    // Zoo area
+    { name: "Zookeeper", x: 645, y: 195, color: "#93c47d", minX: 598, maxX: 700, fixedY: 195, speed: 0.55, dir:  1 },
+    { name: "Visitor",   x: 615, y: 215, color: "#e94560", minX: 598, maxX: 700, fixedY: 215, speed: 0.50, dir: -1 },
+    // Soccer field area (fans & players)
+    { name: "Fan1",      x: 150, y: 335, color: "#2196f3", minX: 125, maxX: 290, fixedY: 335, speed: 0.80, dir:  1 },
+    { name: "Fan2",      x: 260, y: 365, color: "#4caf50", minX: 125, maxX: 290, fixedY: 365, speed: 0.75, dir: -1 },
+    { name: "Referee",   x: 210, y: 350, color: "#000",    minX: 125, maxX: 290, fixedY: 350, speed: 0.95, dir:  1 },
+    // Jogger on road
+    { name: "Jogger",    x: 230, y: 294, color: "#ff9800", minX:  90, maxX: 560, fixedY: 294, speed: 1.30, dir:  1 },
+    // Concert area
+    { name: "Musician",  x: 330, y: 258, color: "#ab47bc", minX: 308, maxX: 400, fixedY: 258, speed: 0.50, dir:  1 },
+    // Hotel area
+    { name: "Tourist",   x: 500, y: 218, color: "#90a4ae", minX: 475, maxX: 565, fixedY: 218, speed: 0.55, dir: -1 },
+  ];
+}
+
+function drawCity2Bots() {
+  if (!state.city2Bots) return;
+  state.city2Bots.forEach(bot => {
+    drawCharacter(bot.x, bot.y, bot.color, bot.name);
   });
 }
 
@@ -1084,6 +1189,15 @@ function updateCity2() {
   }
   const tdx = p.x - tx.x, tdy = p.y - tx.y;
   tx.nearPlayer = !tr.onBoard && Math.sqrt(tdx * tdx + tdy * tdy) < 38;
+
+  // Initialize and update city 2 NPC bots
+  initCity2Bots();
+  state.city2Bots.forEach(bot => {
+    bot.x += bot.speed * bot.dir;
+    if (bot.x >= bot.maxX) { bot.x = bot.maxX; bot.dir = -1; }
+    if (bot.x <= bot.minX) { bot.x = bot.minX; bot.dir =  1; }
+    bot.y = bot.fixedY; // keep on patrol lane
+  });
 }
 
 // ─── City switcher ────────────────────────────────────────────────────────────
@@ -1226,6 +1340,16 @@ canvas.addEventListener("click", (e) => {
   }
 
   if (state.currentCity === 2) {
+    // Check if click is on an NPC bot
+    if (state.city2Bots) {
+      for (const bot of state.city2Bots) {
+        const dx = cx - bot.x, dy = cy - bot.y;
+        if (Math.sqrt(dx * dx + dy * dy) < 18) {
+          showToast(`👋 ${bot.name} says: "Hello traveller!"`);
+          return;
+        }
+      }
+    }
     // City 2 building interactions
     const c2 = WORLD_CITY2;
     const ap = c2.airport;
@@ -1247,6 +1371,10 @@ canvas.addEventListener("click", (e) => {
     const ho = c2.hotel;
     if (cx >= ho.x && cx <= ho.x + ho.w && cy >= ho.y - 18 && cy <= ho.y + ho.h) {
       showToast("🏨 Hotel Paradise – Luxury rooms available. Rate: 0.01 ETH/night"); return;
+    }
+    const sf = c2.soccer;
+    if (cx >= sf.x - 9 && cx <= sf.x + sf.w + 9 && cy >= sf.y && cy <= sf.y + sf.h + 14) {
+      showToast("⚽ Soccer Field – Match today at 5PM! Admission: 0.002 ETH"); return;
     }
     return; // no other click actions in city 2
   }
