@@ -136,6 +136,31 @@ function fmtEth(wei) {
 }
 
 // ─── Wallet & Contracts ───────────────────────────────────────────────────────
+function applyWalletState() {
+  document.getElementById("btn-connect").classList.add("hidden");
+  document.getElementById("wallet-display").textContent = shortAddr(state.wallet);
+  document.getElementById("wallet-display").classList.remove("hidden");
+  document.getElementById("btn-set-nickname").classList.remove("hidden");
+}
+
+function clearWalletState() {
+  state.wallet   = null;
+  state.signer   = null;
+  state.provider = null;
+  state.nickname = "";
+  state.contracts.registry = null;
+  state.contracts.skillNFT = null;
+  state.contracts.houseNFT = null;
+  state.contracts.vending  = null;
+  document.getElementById("btn-connect").classList.remove("hidden");
+  document.getElementById("wallet-display").classList.add("hidden");
+  document.getElementById("wallet-display").textContent = "";
+  document.getElementById("btn-set-nickname").classList.add("hidden");
+  document.getElementById("nickname-display").classList.add("hidden");
+  document.getElementById("nickname-display").textContent = "";
+  renderOnlineList();
+}
+
 async function connectWallet() {
   if (!window.ethereum) {
     showToast("MetaMask not found. Please install MetaMask.");
@@ -147,11 +172,7 @@ async function connectWallet() {
     state.signer   = state.provider.getSigner();
     state.wallet   = await state.signer.getAddress();
 
-    document.getElementById("btn-connect").classList.add("hidden");
-    document.getElementById("wallet-display").textContent = shortAddr(state.wallet);
-    document.getElementById("wallet-display").classList.remove("hidden");
-    document.getElementById("btn-set-nickname").classList.remove("hidden");
-
+    applyWalletState();
     initContracts();
     await loadNickname();
     await refreshOnlinePlayers();
@@ -159,6 +180,42 @@ async function connectWallet() {
   } catch (err) {
     showToast("Connection failed: " + err.message);
   }
+}
+
+async function autoDetectWallet() {
+  if (!window.ethereum) return;
+  try {
+    const accounts = await window.ethereum.request({ method: "eth_accounts" });
+    if (accounts && accounts.length > 0) {
+      state.provider = new ethers.providers.Web3Provider(window.ethereum);
+      state.signer   = state.provider.getSigner();
+      state.wallet   = await state.signer.getAddress();
+      applyWalletState();
+      initContracts();
+      await loadNickname();
+      await refreshOnlinePlayers();
+    }
+  } catch (_) {}
+
+  window.ethereum.on("accountsChanged", async (accounts) => {
+    if (!accounts || accounts.length === 0) {
+      clearWalletState();
+      showToast("Wallet disconnected.");
+    } else {
+      state.provider = new ethers.providers.Web3Provider(window.ethereum);
+      state.signer   = state.provider.getSigner();
+      state.wallet   = await state.signer.getAddress();
+      applyWalletState();
+      initContracts();
+      await loadNickname();
+      await refreshOnlinePlayers();
+      showToast("Account switched: " + shortAddr(state.wallet));
+    }
+  });
+
+  window.ethereum.on("chainChanged", () => {
+    window.location.reload();
+  });
 }
 
 function initContracts() {
@@ -1633,4 +1690,5 @@ renderOnlineList();
 addGlobalMessage({ sender: "System", text: "Welcome to PixelCrypto! Connect your wallet to play.", type: "system" });
 addGlobalMessage({ sender: "System", text: "Click on characters to chat privately. Use WASD/Arrow keys to move.", type: "system" });
 addGlobalMessage({ sender: "System", text: "Switch to 🌴 Coastal City for beach, train, airport, zoo & more! Press [E] to board vehicles.", type: "system" });
+autoDetectWallet();
 gameLoop();
