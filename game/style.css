@@ -342,13 +342,8 @@ button:active { opacity: 0.7; }
 
 /* ─── City Selector ─────────────────────────────────────────────────── */
 #city-selector {
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
   display: flex;
   gap: 6px;
-  z-index: 5;
 }
 
 .city-btn {
