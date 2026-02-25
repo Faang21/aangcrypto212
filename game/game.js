@@ -76,6 +76,33 @@ const state = {
   foodItems: [],
   skillTypes: [],
   myHouseTokenIds: [],
+
+  // City system
+  currentCity: 1, // 1 = Modern City, 2 = Coastal Paradise
+
+  // City 2: animated objects
+  train: {
+    progress: 0,       // 0..1 position along oval track
+    speed: 0.0006,
+    onBoard: false,
+    nearStation: -1,   // index in TRAIN_STATIONS, -1 = none
+  },
+  airplane: {
+    x: -150,
+    y: 68,
+    speed: 0.85,
+  },
+  taxi: {
+    x: 130,
+    y: 290,
+    dir: 1,            // 1 = right, -1 = left
+    speed: 1.1,
+    onBoard: false,
+    nearPlayer: false,
+  },
+  jobs: {
+    current: null,     // 'pilot' | 'masinis' | 'lifeguard' | 'taxi' | null
+  },
 };
 
 // ─── Utils ────────────────────────────────────────────────────────────────────
@@ -620,6 +647,482 @@ function drawWorld() {
   });
 }
 
+// ─── City 2: Coastal Paradise ─────────────────────────────────────────────────
+
+// Train track oval parameters (city 2, centered in canvas)
+const TRAIN_CX = 400, TRAIN_CY = 248, TRAIN_RX = 320, TRAIN_RY = 172;
+
+function getTrainPos(prog) {
+  const a = prog * Math.PI * 2 - Math.PI / 2; // start from top
+  return {
+    x: TRAIN_CX + TRAIN_RX * Math.cos(a),
+    y: TRAIN_CY + TRAIN_RY * Math.sin(a),
+  };
+}
+
+// Train stations around the oval
+const TRAIN_STATIONS = [
+  { prog: 0.00, label: "School"  },   // top:    (400,  76)
+  { prog: 0.25, label: "Zoo"     },   // right:  (720, 248)
+  { prog: 0.50, label: "Beach"   },   // bottom: (400, 420)
+  { prog: 0.75, label: "Airport" },   // left:   ( 80, 248)
+];
+
+// City 2 landmark objects
+const WORLD_CITY2 = {
+  beach:    { y: 405 },
+  mountain: { x: 630, y: 0,   w: 170, h: 185 },
+  waterfall:{ x: 658, y: 148 },
+  airport: {
+    x: 18, y: 192, termW: 92, termH: 48,
+    runwayX: 18, runwayY: 250, runwayW: 210, runwayH: 20,
+    towerX: 95, towerY: 162, towerW: 22, towerH: 38,
+  },
+  school:  { x: 326, y: 22, w: 82, h: 50,  label: "🎓 School"  },
+  hotel:   { x: 480, y: 148, w: 82, h: 72, label: "🏨 Hotel"   },
+  concert: { x: 308, y: 210, w: 90, h: 56, label: "🎵 Concert" },
+  zoo:     { x: 600, y: 148, w: 96, h: 72, label: "🦁 Zoo"     },
+  houses: [
+    { x:  78, y:  88, col: "#7b5ea7" },
+    { x: 168, y: 128, col: "#6d9eeb" },
+    { x: 450, y: 148, col: "#93c47d" },
+    { x: 196, y: 268, col: "#e06666" },
+    { x: 484, y: 268, col: "#ff9800" },
+  ],
+};
+
+function drawCity2() {
+  // Sky
+  ctx.fillStyle = "#87ceeb";
+  ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+  // Grass (above beach)
+  ctx.fillStyle = "#4a8c5c";
+  ctx.fillRect(0, 0, CANVAS_W, WORLD_CITY2.beach.y);
+  // Roads
+  ctx.fillStyle = "#555";
+  ctx.fillRect(0, 286, CANVAS_W, 16);    // horizontal road (taxi lane)
+  ctx.fillRect(392, 0, 16, WORLD_CITY2.beach.y); // vertical road
+  ctx.fillStyle = "#fff";
+  for (let rx = 20; rx < CANVAS_W; rx += 44) {
+    ctx.fillRect(rx, 292, 22, 4);         // road dash
+  }
+
+  drawMountain2();
+  drawWaterfall2();
+  drawBeach2();
+  drawAirport2();
+  drawTrainTrack2();
+  drawCity2Buildings();
+  drawCity2Houses();
+  drawAirplane2();
+  drawTaxi2();
+  drawTrain2();
+  drawCity2Hints();
+}
+
+function drawMountain2() {
+  const m = WORLD_CITY2.mountain;
+  ctx.fillStyle = "#6b7a8d";
+  ctx.beginPath();
+  ctx.moveTo(m.x, m.y + m.h);
+  ctx.lineTo(m.x + m.w / 2, m.y);
+  ctx.lineTo(m.x + m.w, m.y + m.h);
+  ctx.closePath();
+  ctx.fill();
+  // Snow cap
+  ctx.fillStyle = "#f0f0f0";
+  ctx.beginPath();
+  ctx.moveTo(m.x + m.w / 2, m.y);
+  ctx.lineTo(m.x + m.w / 2 - 22, m.y + 52);
+  ctx.lineTo(m.x + m.w / 2 + 22, m.y + 52);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = "#fff";
+  ctx.font = "bold 9px monospace";
+  ctx.textAlign = "center";
+  ctx.fillText("⛰ Mountain", m.x + m.w / 2, m.y + m.h + 12);
+}
+
+function drawWaterfall2() {
+  const wf = WORLD_CITY2.waterfall;
+  const tick = state.animTick;
+  ctx.fillStyle = "#48cae4";
+  ctx.fillRect(wf.x, wf.y, 9, 58);
+  // Animated drops
+  const dropY = wf.y + (tick * 2 % 58);
+  ctx.fillStyle = "rgba(72,202,228,0.7)";
+  ctx.fillRect(wf.x, dropY, 9, 14);
+  // Pool
+  ctx.fillStyle = "rgba(72,202,228,0.5)";
+  ctx.beginPath();
+  ctx.ellipse(wf.x + 4, wf.y + 62, 16, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#a8d8ea";
+  ctx.font = "8px monospace";
+  ctx.textAlign = "center";
+  ctx.fillText("💧 Waterfall", wf.x + 4, wf.y + 76);
+}
+
+function drawBeach2() {
+  const by = WORLD_CITY2.beach.y;
+  // Sand
+  ctx.fillStyle = "#f4d03f";
+  ctx.fillRect(0, by, CANVAS_W, 42);
+  // Sea
+  ctx.fillStyle = "#0077b6";
+  ctx.fillRect(0, by + 42, CANVAS_W, CANVAS_H - by - 42);
+  // Animated waves
+  ctx.strokeStyle = "rgba(255,255,255,0.55)";
+  ctx.lineWidth = 3;
+  const tick = state.animTick;
+  for (let wx = 0; wx < CANVAS_W; wx += 64) {
+    const wy = by + 48 + Math.sin((wx + tick * 2) * 0.042) * 5;
+    ctx.beginPath();
+    ctx.moveTo(wx, wy);
+    ctx.bezierCurveTo(wx + 16, wy - 7, wx + 32, wy + 7, wx + 64, wy);
+    ctx.stroke();
+  }
+  ctx.lineWidth = 1;
+  // Beach umbrella
+  ctx.fillStyle = "#e94560";
+  ctx.beginPath();
+  ctx.arc(190, by + 12, 24, Math.PI, 2 * Math.PI);
+  ctx.fill();
+  ctx.fillStyle = "#ffd166";
+  ctx.fillRect(189, by + 12, 3, 24);
+  // Lifeguard tower
+  ctx.fillStyle = "#e94560";
+  ctx.fillRect(390, by + 2, 32, 22);
+  ctx.fillStyle = "#f4d03f";
+  ctx.fillRect(393, by + 5, 26, 14);
+  ctx.fillStyle = "#fff";
+  ctx.font = "bold 9px monospace";
+  ctx.textAlign = "center";
+  ctx.fillText("🏖 Beach", 200, by - 6);
+  ctx.fillText("🛟 Lifeguard", 406, by - 3);
+}
+
+function drawAirport2() {
+  const ap = WORLD_CITY2.airport;
+  // Terminal
+  ctx.fillStyle = "#4a5568";
+  ctx.fillRect(ap.x, ap.y, ap.termW, ap.termH);
+  ctx.fillStyle = "#48cae4";
+  for (let i = 0; i < 4; i++) ctx.fillRect(ap.x + 7 + i * 20, ap.y + 8, 13, 20);
+  // Runway
+  ctx.fillStyle = "#444";
+  ctx.fillRect(ap.runwayX, ap.runwayY, ap.runwayW, ap.runwayH);
+  ctx.fillStyle = "#fff";
+  for (let i = 0; i < 5; i++) ctx.fillRect(ap.runwayX + 18 + i * 36, ap.runwayY + 8, 22, 4);
+  // Control tower
+  ctx.fillStyle = "#718096";
+  ctx.fillRect(ap.towerX, ap.towerY, ap.towerW, ap.towerH);
+  ctx.fillStyle = "#48cae4";
+  ctx.fillRect(ap.towerX - 5, ap.towerY, ap.towerW + 10, 14);
+  ctx.fillStyle = "#fff";
+  ctx.font = "bold 9px monospace";
+  ctx.textAlign = "center";
+  ctx.fillText("✈ Airport", ap.x + ap.termW / 2, ap.y - 6);
+  ctx.font = "7px monospace";
+  ctx.fillText("(Click for Jobs)", ap.x + ap.termW / 2, ap.y - 16);
+}
+
+function drawCity2Buildings() {
+  const blds  = [WORLD_CITY2.school, WORLD_CITY2.hotel, WORLD_CITY2.concert, WORLD_CITY2.zoo];
+  const walls  = ["#1e6b9e", "#7b1fa2", "#1565c0", "#2e7d32"];
+  const roofs  = ["#1565c0", "#6a1b9a", "#0d47a1", "#1b5e20"];
+  blds.forEach((b, i) => {
+    ctx.fillStyle = walls[i];
+    ctx.fillRect(b.x, b.y, b.w, b.h);
+    ctx.fillStyle = roofs[i];
+    ctx.beginPath();
+    ctx.moveTo(b.x - 4, b.y);
+    ctx.lineTo(b.x + b.w / 2, b.y - 18);
+    ctx.lineTo(b.x + b.w + 4, b.y);
+    ctx.closePath();
+    ctx.fill();
+    // Windows
+    ctx.fillStyle = "rgba(255,255,200,0.65)";
+    for (let r = 0; r < 2; r++) {
+      for (let c = 0; c < 3; c++) {
+        ctx.fillRect(b.x + 7 + c * 24, b.y + 7 + r * 20, 13, 11);
+      }
+    }
+    ctx.fillStyle = "#fff";
+    ctx.font = "bold 9px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(b.label, b.x + b.w / 2, b.y + b.h + 12);
+  });
+}
+
+function drawCity2Houses() {
+  WORLD_CITY2.houses.forEach(h => {
+    ctx.fillStyle = h.col;
+    ctx.fillRect(h.x, h.y, 36, 26);
+    ctx.fillStyle = COLORS.houseRoof;
+    ctx.beginPath();
+    ctx.moveTo(h.x - 4, h.y);
+    ctx.lineTo(h.x + 18, h.y - 14);
+    ctx.lineTo(h.x + 40, h.y);
+    ctx.closePath();
+    ctx.fill();
+  });
+}
+
+function drawTrainTrack2() {
+  // Rails
+  ctx.strokeStyle = "#795548";
+  ctx.lineWidth = 6;
+  ctx.beginPath();
+  ctx.ellipse(TRAIN_CX, TRAIN_CY, TRAIN_RX, TRAIN_RY, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  // Cross ties
+  ctx.strokeStyle = "#5d4037";
+  ctx.lineWidth = 2;
+  for (let i = 0; i < 40; i++) {
+    const a = (i / 40) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(TRAIN_CX + TRAIN_RX * 0.955 * Math.cos(a), TRAIN_CY + TRAIN_RY * 0.955 * Math.sin(a));
+    ctx.lineTo(TRAIN_CX + TRAIN_RX * 1.045 * Math.cos(a), TRAIN_CY + TRAIN_RY * 1.045 * Math.sin(a));
+    ctx.stroke();
+  }
+  ctx.lineWidth = 1;
+  // Station markers
+  TRAIN_STATIONS.forEach(st => {
+    const pos = getTrainPos(st.prog);
+    ctx.fillStyle = "#ffd166";
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, 9, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#e94560";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.lineWidth = 1;
+    ctx.fillStyle = "#000";
+    ctx.font = "bold 7px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(st.label, pos.x, pos.y + 17);
+  });
+}
+
+function drawTrain2() {
+  const pos = getTrainPos(state.train.progress);
+  // Locomotive body
+  ctx.fillStyle = "#c62828";
+  ctx.fillRect(pos.x - 16, pos.y - 10, 32, 18);
+  // Cab
+  ctx.fillStyle = "#b71c1c";
+  ctx.fillRect(pos.x - 8, pos.y - 18, 16, 10);
+  // Wheels
+  ctx.fillStyle = "#212121";
+  [pos.x - 10, pos.x + 10].forEach(wx => {
+    ctx.beginPath();
+    ctx.arc(wx, pos.y + 8, 5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  // Chimney
+  ctx.fillStyle = "#37474f";
+  ctx.fillRect(pos.x - 3, pos.y - 24, 6, 8);
+  // Steam puff (animated)
+  if (state.animTick % 24 < 12) {
+    ctx.fillStyle = "rgba(220,220,220,0.5)";
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y - 28, 7, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // Label
+  ctx.fillStyle = "#fff";
+  ctx.font = "9px monospace";
+  ctx.textAlign = "center";
+  ctx.fillText("🚂", pos.x, pos.y - 32);
+}
+
+function drawAirplane2() {
+  const a = state.airplane;
+  const x = a.x, y = a.y;
+  // Fuselage
+  ctx.fillStyle = "#eceff1";
+  ctx.fillRect(x - 22, y - 6, 44, 12);
+  // Nose
+  ctx.fillStyle = "#90a4ae";
+  ctx.beginPath();
+  ctx.moveTo(x + 22, y - 6);
+  ctx.lineTo(x + 40, y);
+  ctx.lineTo(x + 22, y + 6);
+  ctx.closePath();
+  ctx.fill();
+  // Wings
+  ctx.fillStyle = "#b0bec5";
+  ctx.beginPath();
+  ctx.moveTo(x - 4, y - 6);
+  ctx.lineTo(x + 12, y - 22);
+  ctx.lineTo(x + 16, y - 6);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(x - 4, y + 6);
+  ctx.lineTo(x + 12, y + 22);
+  ctx.lineTo(x + 16, y + 6);
+  ctx.closePath();
+  ctx.fill();
+  // Tail fin
+  ctx.fillStyle = "#90a4ae";
+  ctx.beginPath();
+  ctx.moveTo(x - 22, y - 6);
+  ctx.lineTo(x - 32, y - 17);
+  ctx.lineTo(x - 18, y - 6);
+  ctx.closePath();
+  ctx.fill();
+  // Windows
+  ctx.fillStyle = "#48cae4";
+  for (let i = 0; i < 3; i++) ctx.fillRect(x - 14 + i * 11, y - 4, 7, 7);
+  // Label
+  ctx.fillStyle = "#fff";
+  ctx.font = "bold 8px monospace";
+  ctx.textAlign = "center";
+  ctx.fillText("✈ Int'l Flight →", x, y - 30);
+}
+
+function drawTaxi2() {
+  const t = state.taxi;
+  const x = t.x, y = t.y;
+  // Taxi body
+  ctx.fillStyle = "#ffd166";
+  ctx.fillRect(x - 22, y - 11, 44, 20);
+  // Roof
+  ctx.fillStyle = "#f4c430";
+  ctx.fillRect(x - 14, y - 22, 28, 13);
+  // Windscreen
+  ctx.fillStyle = "#48cae4";
+  ctx.fillRect(x - 12, y - 20, 11, 9);
+  ctx.fillRect(x + 2, y - 20, 11, 9);
+  // Wheels
+  ctx.fillStyle = "#212121";
+  [x - 14, x + 14].forEach(wx => {
+    ctx.beginPath();
+    ctx.arc(wx, y + 9, 5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  // TAXI sign
+  ctx.fillStyle = "#e94560";
+  ctx.fillRect(x - 9, y - 28, 18, 7);
+  ctx.fillStyle = "#fff";
+  ctx.font = "bold 5px monospace";
+  ctx.textAlign = "center";
+  ctx.fillText("TAXI", x, y - 23);
+  // Board hint
+  if (t.nearPlayer) {
+    ctx.fillStyle = "rgba(0,0,0,0.7)";
+    ctx.fillRect(x - 50, y - 46, 100, 18);
+    ctx.fillStyle = "#ffd166";
+    ctx.font = "bold 8px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(t.onBoard ? "[E] Exit Taxi" : "[E] Enter Taxi", x, y - 33);
+  }
+}
+
+function drawCity2Hints() {
+  const tr = state.train;
+  if (tr.nearStation < 0) return;
+  const stn = TRAIN_STATIONS[tr.nearStation];
+  const pos = getTrainPos(stn.prog);
+  ctx.fillStyle = "rgba(0,0,0,0.7)";
+  ctx.fillRect(pos.x - 56, pos.y - 42, 112, 20);
+  ctx.fillStyle = "#ffd166";
+  ctx.font = "bold 9px monospace";
+  ctx.textAlign = "center";
+  ctx.fillText(tr.onBoard ? "[E] Leave Train" : "[E] Board Train", pos.x, pos.y - 27);
+}
+
+function updateCity2() {
+  const tr = state.train;
+  const p  = state.player;
+
+  // Advance train along track
+  tr.progress = (tr.progress + tr.speed) % 1;
+
+  if (tr.onBoard) {
+    // Move player with train
+    const tpos = getTrainPos(tr.progress);
+    p.x = tpos.x;
+    p.y = tpos.y;
+    // Check if train is near a station to allow disembark
+    let nearIdx = -1;
+    TRAIN_STATIONS.forEach((st, i) => {
+      const diff = Math.abs(tr.progress - st.prog);
+      if (diff < 0.04 || diff > 0.96) nearIdx = i;
+    });
+    tr.nearStation = nearIdx;
+  } else {
+    // Check if player is near any station to allow boarding
+    let nearIdx = -1;
+    TRAIN_STATIONS.forEach((st, i) => {
+      const pos = getTrainPos(st.prog);
+      const dx = p.x - pos.x, dy = p.y - pos.y;
+      if (Math.sqrt(dx * dx + dy * dy) < 38) nearIdx = i;
+    });
+    tr.nearStation = nearIdx;
+  }
+
+  // Advance airplane (flies right and loops)
+  const ap = state.airplane;
+  ap.x += ap.speed;
+  if (ap.x > CANVAS_W + 160) ap.x = -160;
+
+  // Advance taxi (oscillates left-right on the road)
+  const tx = state.taxi;
+  if (!tx.onBoard) {
+    tx.x += tx.speed * tx.dir;
+    if (tx.x > 570) tx.dir = -1;
+    if (tx.x < 110) tx.dir =  1;
+  } else {
+    tx.x += tx.speed * tx.dir;
+    if (tx.x > 570) tx.dir = -1;
+    if (tx.x < 110) tx.dir =  1;
+    p.x = tx.x;
+    p.y = tx.y;
+  }
+  const tdx = p.x - tx.x, tdy = p.y - tx.y;
+  tx.nearPlayer = !tr.onBoard && Math.sqrt(tdx * tdx + tdy * tdy) < 38;
+}
+
+// ─── City switcher ────────────────────────────────────────────────────────────
+function switchCity(city) {
+  state.currentCity = city;
+  // Reset player to center
+  state.player.x = CANVAS_W / 2;
+  state.player.y = CANVAS_H / 2;
+  // Reset boarding states when leaving city 2
+  if (city !== 2) {
+    state.train.onBoard = false;
+    state.taxi.onBoard  = false;
+  }
+  document.getElementById("btn-city1").classList.toggle("active", city === 1);
+  document.getElementById("btn-city2").classList.toggle("active", city === 2);
+  const msg = city === 1 ? "🏙 Welcome to Modern City!" : "🌴 Welcome to Coastal Paradise!";
+  showToast(msg);
+  addGlobalMessage({ sender: "System", text: msg, type: "system" });
+}
+
+// ─── Jobs ─────────────────────────────────────────────────────────────────────
+function openJobs() {
+  const el = document.getElementById("active-job-display");
+  const names = { pilot: "✈️ Pilot", masinis: "🚂 Train Driver (Masinis)", lifeguard: "🛟 Lifeguard", taxi: "🚕 Taxi Driver" };
+  el.textContent = state.jobs.current ? `Current job: ${names[state.jobs.current]}` : "";
+  openModal("modal-jobs");
+}
+
+function takeJob(jobType) {
+  if (!state.wallet) { showToast("Connect wallet first to take a job."); return; }
+  const names = { pilot: "✈️ Pilot", masinis: "🚂 Train Driver (Masinis)", lifeguard: "🛟 Lifeguard", taxi: "🚕 Taxi Driver" };
+  state.jobs.current = jobType;
+  const name = names[jobType];
+  showToast(`✅ You got the job: ${name}!`);
+  addGlobalMessage({ sender: "System", text: `${state.nickname || shortAddr(state.wallet) || "Player"} became a ${name}!`, type: "system" });
+  document.getElementById("active-job-display").textContent = `Current job: ${name}`;
+  closeModal("modal-jobs");
+}
+
 function drawCharacter(x, y, color, name, isPlayer = false) {
   // Shadow
   ctx.fillStyle = COLORS.shadow;
@@ -657,13 +1160,17 @@ function drawCharacter(x, y, color, name, isPlayer = false) {
 }
 
 function gameLoop() {
-  // Move player
+  // Move player (only when not locked to vehicle)
   const p = state.player;
+  const lockedToTrain = state.currentCity === 2 && state.train.onBoard;
+  const lockedToTaxi  = state.currentCity === 2 && state.taxi.onBoard;
   p.moving = false;
-  if (state.keys["ArrowLeft"]  || state.keys["a"] || state.keys["A"]) { p.x -= PLAYER_SPEED; p.dir = "left";  p.moving = true; }
-  if (state.keys["ArrowRight"] || state.keys["d"] || state.keys["D"]) { p.x += PLAYER_SPEED; p.dir = "right"; p.moving = true; }
-  if (state.keys["ArrowUp"]    || state.keys["w"] || state.keys["W"]) { p.y -= PLAYER_SPEED; p.dir = "up";    p.moving = true; }
-  if (state.keys["ArrowDown"]  || state.keys["s"] || state.keys["S"]) { p.y += PLAYER_SPEED; p.dir = "down";  p.moving = true; }
+  if (!lockedToTrain && !lockedToTaxi) {
+    if (state.keys["ArrowLeft"]  || state.keys["a"] || state.keys["A"]) { p.x -= PLAYER_SPEED; p.dir = "left";  p.moving = true; }
+    if (state.keys["ArrowRight"] || state.keys["d"] || state.keys["D"]) { p.x += PLAYER_SPEED; p.dir = "right"; p.moving = true; }
+    if (state.keys["ArrowUp"]    || state.keys["w"] || state.keys["W"]) { p.y -= PLAYER_SPEED; p.dir = "up";    p.moving = true; }
+    if (state.keys["ArrowDown"]  || state.keys["s"] || state.keys["S"]) { p.y += PLAYER_SPEED; p.dir = "down";  p.moving = true; }
+  }
 
   // Clamp to canvas
   p.x = Math.max(16, Math.min(CANVAS_W - 16, p.x));
@@ -680,8 +1187,13 @@ function gameLoop() {
     }
   });
 
-  // Draw
-  drawWorld();
+  // City-specific update & draw
+  if (state.currentCity === 2) {
+    updateCity2();
+    drawCity2();
+  } else {
+    drawWorld();
+  }
 
   // Draw other players
   state.otherPlayers.forEach(op => {
@@ -713,14 +1225,40 @@ canvas.addEventListener("click", (e) => {
     }
   }
 
-  // Check if click is near vending machine
+  if (state.currentCity === 2) {
+    // City 2 building interactions
+    const c2 = WORLD_CITY2;
+    const ap = c2.airport;
+    if (cx >= ap.x && cx <= ap.x + ap.termW && cy >= ap.y - 10 && cy <= ap.y + ap.termH) {
+      openJobs(); return;
+    }
+    const sc = c2.school;
+    if (cx >= sc.x && cx <= sc.x + sc.w && cy >= sc.y - 18 && cy <= sc.y + sc.h) {
+      openSkills(); return;
+    }
+    const co = c2.concert;
+    if (cx >= co.x && cx <= co.x + co.w && cy >= co.y - 18 && cy <= co.y + co.h) {
+      showToast("🎵 Tonight's concert: CryptoBeats Live! Ticket: 0.005 ETH"); return;
+    }
+    const zo = c2.zoo;
+    if (cx >= zo.x && cx <= zo.x + zo.w && cy >= zo.y - 18 && cy <= zo.y + zo.h) {
+      showToast("🦁 City Zoo – Lions, Tigers, Pandas & more! Entry: 0.003 ETH"); return;
+    }
+    const ho = c2.hotel;
+    if (cx >= ho.x && cx <= ho.x + ho.w && cy >= ho.y - 18 && cy <= ho.y + ho.h) {
+      showToast("🏨 Hotel Paradise – Luxury rooms available. Rate: 0.01 ETH/night"); return;
+    }
+    return; // no other click actions in city 2
+  }
+
+  // City 1: Check if click is near vending machine
   const vm = WORLD.vending;
   if (cx >= vm.x - 10 && cx <= vm.x + 38 && cy >= vm.y - 10 && cy <= vm.y + 46) {
     openVending();
     return;
   }
 
-  // Check houses
+  // City 1: Check houses
   WORLD.houses.forEach((h, i) => {
     if (cx >= h.x && cx <= h.x + 60 && cy >= h.y - 20 && cy <= h.y + 40) {
       if (i === 0) openMarket();
@@ -738,6 +1276,23 @@ window.addEventListener("keydown", e => {
   if (e.key === "Enter") {
     if (document.activeElement === document.getElementById("chat-input")) sendGlobalChat();
     if (document.activeElement === document.getElementById("pm-input"))   sendPm();
+  }
+  // E key: board/leave train or taxi in city 2
+  if ((e.key === "e" || e.key === "E") && state.currentCity === 2) {
+    const tr = state.train;
+    const tx = state.taxi;
+    if (tr.nearStation >= 0) {
+      tr.onBoard = !tr.onBoard;
+      if (tr.onBoard) {
+        tx.onBoard = false; // can't be in both
+        showToast(`🚂 Boarded train at ${TRAIN_STATIONS[tr.nearStation].label} Station!`);
+      } else {
+        showToast(`🚂 Disembarked at ${TRAIN_STATIONS[tr.nearStation].label} Station.`);
+      }
+    } else if (tx.nearPlayer) {
+      tx.onBoard = !tx.onBoard;
+      showToast(tx.onBoard ? "🚕 Entered taxi!" : "🚕 Exited taxi.");
+    }
   }
 });
 window.addEventListener("keyup",   e => { state.keys[e.key] = false; });
@@ -777,6 +1332,7 @@ document.getElementById("btn-save-nickname").addEventListener("click", saveNickn
 document.getElementById("btn-open-market").addEventListener("click", openMarket);
 document.getElementById("btn-open-vending").addEventListener("click", openVending);
 document.getElementById("btn-open-skills").addEventListener("click", openSkills);
+document.getElementById("btn-open-jobs").addEventListener("click", openJobs);
 document.getElementById("btn-send").addEventListener("click", sendGlobalChat);
 document.getElementById("btn-send-pm").addEventListener("click", sendPm);
 document.getElementById("btn-close-pm").addEventListener("click", () => {
@@ -795,4 +1351,5 @@ seedOtherPlayers();
 renderOnlineList();
 addGlobalMessage({ sender: "System", text: "Welcome to PixelCrypto! Connect your wallet to play.", type: "system" });
 addGlobalMessage({ sender: "System", text: "Click on characters to chat privately. Use WASD/Arrow keys to move.", type: "system" });
+addGlobalMessage({ sender: "System", text: "Switch to 🌴 Coastal City for beach, train, airport, zoo & more! Press [E] to board vehicles.", type: "system" });
 gameLoop();

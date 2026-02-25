@@ -23,11 +23,17 @@
     <!-- Game canvas -->
     <div id="canvas-wrapper">
       <canvas id="gameCanvas" width="800" height="500"></canvas>
+      <!-- City selector (top of canvas) -->
+      <div id="city-selector">
+        <button class="city-btn active" id="btn-city1" onclick="switchCity(1)">🏙 Modern City</button>
+        <button class="city-btn" id="btn-city2" onclick="switchCity(2)">🌴 Coastal City</button>
+      </div>
       <!-- Overlay buttons inside game -->
       <div id="game-ui">
         <button class="ui-btn" id="btn-open-market">🏠 Market</button>
         <button class="ui-btn" id="btn-open-vending">🍎 Vending</button>
         <button class="ui-btn" id="btn-open-skills">⚔️ Skills</button>
+        <button class="ui-btn" id="btn-open-jobs">💼 Jobs</button>
       </div>
     </div>
 
@@ -118,6 +124,46 @@
         <button id="btn-send-pm">Send</button>
       </div>
       <button class="btn-cancel" data-modal="modal-pm">Close</button>
+    </div>
+  </div>
+
+  <!-- Jobs modal -->
+  <div id="modal-jobs" class="modal hidden">
+    <div class="modal-box wide">
+      <h2>💼 Job Board – Coastal City</h2>
+      <p>Take a job and earn rewards every shift! Requires wallet connection.</p>
+      <div class="item-grid">
+        <div class="item-card">
+          <div class="item-icon">✈️</div>
+          <div class="item-name">Pilot</div>
+          <div class="item-price">Fly international routes</div>
+          <div class="item-sell-price">+0.05 ETH/flight</div>
+          <button onclick="takeJob('pilot')">Apply</button>
+        </div>
+        <div class="item-card">
+          <div class="item-icon">🚂</div>
+          <div class="item-name">Train Driver (Masinis)</div>
+          <div class="item-price">Drive the city circular train</div>
+          <div class="item-sell-price">+0.02 ETH/route</div>
+          <button onclick="takeJob('masinis')">Apply</button>
+        </div>
+        <div class="item-card">
+          <div class="item-icon">🛟</div>
+          <div class="item-name">Lifeguard</div>
+          <div class="item-price">Guard the beach &amp; swimmers</div>
+          <div class="item-sell-price">+0.015 ETH/shift</div>
+          <button onclick="takeJob('lifeguard')">Apply</button>
+        </div>
+        <div class="item-card">
+          <div class="item-icon">🚕</div>
+          <div class="item-name">Taxi Driver</div>
+          <div class="item-price">Drive passengers city-wide</div>
+          <div class="item-sell-price">+0.01 ETH/ride</div>
+          <button onclick="takeJob('taxi')">Apply</button>
+        </div>
+      </div>
+      <div id="active-job-display" style="margin-top:12px;font-size:0.85rem;color:#ffd166;min-height:20px;"></div>
+      <button class="btn-cancel" data-modal="modal-jobs">Close</button>
     </div>
   </div>
 
