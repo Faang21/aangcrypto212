@@ -10,6 +10,10 @@
   <!-- Wallet connect bar -->
   <header id="topbar">
     <span id="game-title">🎮 PixelCrypto</span>
+    <div id="city-selector">
+      <button class="city-btn active" id="btn-city1">🏙 Modern City</button>
+      <button class="city-btn" id="btn-city2">🌴 Coastal City</button>
+    </div>
     <div id="wallet-area">
       <button id="btn-connect">Connect Wallet</button>
       <span id="wallet-display" class="hidden"></span>
@@ -23,11 +27,6 @@
     <!-- Game canvas -->
     <div id="canvas-wrapper">
       <canvas id="gameCanvas" width="800" height="500"></canvas>
-      <!-- City selector (top of canvas) -->
-      <div id="city-selector">
-        <button class="city-btn active" id="btn-city1" onclick="switchCity(1)">🏙 Modern City</button>
-        <button class="city-btn" id="btn-city2" onclick="switchCity(2)">🌴 Coastal City</button>
-      </div>
       <!-- Overlay buttons inside game -->
       <div id="game-ui">
         <button class="ui-btn" id="btn-open-market">🏠 Market</button>

@@ -1603,6 +1603,8 @@ document.querySelectorAll(".btn-cancel[data-modal]").forEach(btn => {
 
 // ─── Wire up buttons ──────────────────────────────────────────────────────────
 document.getElementById("btn-connect").addEventListener("click", connectWallet);
+document.getElementById("btn-city1").addEventListener("click", () => switchCity(1));
+document.getElementById("btn-city2").addEventListener("click", () => switchCity(2));
 document.getElementById("btn-set-nickname").addEventListener("click", () => {
   document.getElementById("input-nickname").value = state.nickname;
   openModal("modal-nickname");
