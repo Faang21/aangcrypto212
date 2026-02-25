@@ -1,0 +1,341 @@
+/* ─── Reset & Base ─────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ─── Top Bar ───────────────────────────────────────────────────────── */
+#topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  background: #16213e;
+  border-bottom: 2px solid #0f3460;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+#game-title { font-size: 1.2rem; font-weight: bold; color: #e94560; }
+
+#wallet-area { display: flex; align-items: center; gap: 10px; }
+
+#wallet-display {
+  font-size: 0.8rem;
+  background: #0f3460;
+  padding: 4px 10px;
+  border-radius: 20px;
+  color: #a8d8ea;
+}
+
+#nickname-display {
+  font-size: 0.85rem;
+  background: #e94560;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: bold;
+  color: #fff;
+}
+
+/* ─── Layout ────────────────────────────────────────────────────────── */
+#layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ─── Canvas ────────────────────────────────────────────────────────── */
+#canvas-wrapper {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  background: #2d6a4f;
+}
+
+#gameCanvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: default;
+  image-rendering: pixelated;
+}
+
+#game-ui {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+}
+
+.ui-btn {
+  background: rgba(15, 52, 96, 0.85);
+  color: #fff;
+  border: 1px solid #e94560;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.15s;
+}
+.ui-btn:hover { background: #e94560; }
+
+/* ─── Sidebar ───────────────────────────────────────────────────────── */
+#sidebar {
+  width: 280px;
+  display: flex;
+  flex-direction: column;
+  background: #16213e;
+  border-left: 2px solid #0f3460;
+  flex-shrink: 0;
+}
+
+#online-panel {
+  padding: 10px;
+  border-bottom: 1px solid #0f3460;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+#online-panel h3 { font-size: 0.9rem; color: #a8d8ea; margin-bottom: 6px; }
+
+#online-list { list-style: none; }
+
+#online-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.1s;
+}
+#online-list li:hover { background: #0f3460; }
+
+.online-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #52b788;
+  flex-shrink: 0;
+}
+
+/* ─── Chat Panel ────────────────────────────────────────────────────── */
+#chat-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+#chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  background: #0f3460;
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #a8d8ea;
+  flex-shrink: 0;
+}
+
+#chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.chat-msg {
+  font-size: 0.8rem;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.chat-msg .sender {
+  font-weight: bold;
+  color: #e94560;
+  margin-right: 4px;
+}
+
+.chat-msg.system { color: #a8d8ea; font-style: italic; }
+.chat-msg.private { color: #ffd166; }
+
+#chat-input-row {
+  display: flex;
+  gap: 6px;
+  padding: 8px;
+  border-top: 1px solid #0f3460;
+  flex-shrink: 0;
+}
+
+#chat-input {
+  flex: 1;
+  background: #1a1a2e;
+  border: 1px solid #0f3460;
+  border-radius: 6px;
+  color: #e0e0e0;
+  padding: 6px 8px;
+  font-size: 0.8rem;
+  outline: none;
+}
+#chat-input:focus { border-color: #e94560; }
+
+/* ─── Buttons ───────────────────────────────────────────────────────── */
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 6px;
+  padding: 7px 14px;
+  font-size: 0.85rem;
+  transition: opacity 0.15s;
+}
+button:hover { opacity: 0.85; }
+button:active { opacity: 0.7; }
+
+#btn-connect { background: #e94560; color: #fff; }
+#btn-set-nickname { background: #0f3460; color: #a8d8ea; border: 1px solid #a8d8ea; }
+#btn-send { background: #e94560; color: #fff; padding: 6px 12px; }
+#btn-close-pm { background: transparent; color: #e94560; border: 1px solid #e94560; font-size: 0.75rem; padding: 3px 8px; }
+
+.btn-cancel { background: #333; color: #ccc; margin-top: 10px; }
+
+/* ─── Modals ────────────────────────────────────────────────────────── */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal.hidden { display: none; }
+
+.modal-box {
+  background: #16213e;
+  border: 2px solid #0f3460;
+  border-radius: 12px;
+  padding: 24px;
+  min-width: 340px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-box.wide { min-width: 600px; }
+
+.modal-box h2 { font-size: 1.1rem; color: #a8d8ea; margin-bottom: 12px; }
+
+.modal-box p { font-size: 0.85rem; color: #bbb; margin-bottom: 12px; }
+
+.modal-box input[type=text] {
+  width: 100%;
+  background: #1a1a2e;
+  border: 1px solid #0f3460;
+  border-radius: 6px;
+  color: #e0e0e0;
+  padding: 8px 10px;
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+  outline: none;
+}
+.modal-box input[type=text]:focus { border-color: #e94560; }
+
+.modal-actions { display: flex; gap: 8px; }
+
+#btn-save-nickname { background: #e94560; color: #fff; }
+
+/* ─── Market Tabs ───────────────────────────────────────────────────── */
+#market-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+.tab-btn { background: #0f3460; color: #a8d8ea; padding: 6px 14px; border-radius: 6px 6px 0 0; }
+.tab-btn.active { background: #e94560; color: #fff; }
+.tab-content { display: block; }
+.tab-content.hidden { display: none; }
+
+/* ─── Item Cards ────────────────────────────────────────────────────── */
+.item-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  padding: 4px 0 12px;
+}
+
+.item-card {
+  background: #0f3460;
+  border-radius: 8px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.83rem;
+}
+
+.item-card .item-icon { font-size: 2rem; text-align: center; }
+.item-card .item-name { font-weight: bold; color: #a8d8ea; text-align: center; }
+.item-card .item-price { color: #ffd166; text-align: center; font-size: 0.78rem; }
+.item-card .item-sell-price { color: #ef233c; text-align: center; font-size: 0.75rem; }
+.item-card button { background: #52b788; color: #fff; width: 100%; margin-top: 4px; }
+.item-card button.sell-btn { background: #ef233c; }
+.item-card button.list-btn { background: #ffd166; color: #000; }
+
+/* ─── PM Modal ──────────────────────────────────────────────────────── */
+#pm-messages {
+  height: 200px;
+  overflow-y: auto;
+  background: #1a1a2e;
+  border: 1px solid #0f3460;
+  border-radius: 6px;
+  padding: 8px;
+  margin-bottom: 10px;
+  font-size: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#pm-input-row { display: flex; gap: 8px; }
+#pm-input {
+  flex: 1;
+  background: #1a1a2e;
+  border: 1px solid #0f3460;
+  border-radius: 6px;
+  color: #e0e0e0;
+  padding: 6px 8px;
+  font-size: 0.8rem;
+  outline: none;
+}
+#pm-input:focus { border-color: #e94560; }
+#btn-send-pm { background: #e94560; color: #fff; }
+
+/* ─── Toast ─────────────────────────────────────────────────────────── */
+#toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #0f3460;
+  border: 1px solid #e94560;
+  color: #e0e0e0;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  z-index: 200;
+  max-width: 320px;
+  transition: opacity 0.3s;
+}
+#toast.hidden { opacity: 0; pointer-events: none; }
+
+/* ─── Helpers ───────────────────────────────────────────────────────── */
+.hidden { display: none !important; }
