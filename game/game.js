@@ -30,9 +30,9 @@ const COLORS = {
   shadow:  "rgba(0,0,0,0.25)",
 };
 
-const FOOD_ICONS = ["🍎","🍞","🧪","✨"];
+const FOOD_ICONS = ["🍎","🍞","🧪","✨","🎫","🎟️","🏨","⚽"];
 const HOUSE_ICONS = ["🛖","🏠","🏰"];
-const SKILL_ICONS = ["⚔️","🔮","🏹"];
+const SKILL_ICONS = ["⚔️","🔮","🏹","✈️","🚂","🛟","🚕","🦁","🗺️"];
 
 // ─── State ────────────────────────────────────────────────────────────────────
 const state = {
@@ -460,10 +460,15 @@ async function openVending() {
 async function loadFoodItems() {
   if (!state.contracts.vending) {
     state.foodItems = [
-      { id: 0, name: "Apple",  price: ethers.utils.parseEther("0.001"), stock: 0, active: true },
-      { id: 1, name: "Bread",  price: ethers.utils.parseEther("0.002"), stock: 0, active: true },
-      { id: 2, name: "Potion", price: ethers.utils.parseEther("0.005"), stock: 0, active: true },
-      { id: 3, name: "Elixir", price: ethers.utils.parseEther("0.01"),  stock: 0, active: true },
+      { id: 0, name: "Apple",           price: ethers.utils.parseEther("0.001"), stock: 0, active: true },
+      { id: 1, name: "Bread",           price: ethers.utils.parseEther("0.002"), stock: 0, active: true },
+      { id: 2, name: "Potion",          price: ethers.utils.parseEther("0.005"), stock: 0, active: true },
+      { id: 3, name: "Elixir",          price: ethers.utils.parseEther("0.01"),  stock: 0, active: true },
+      // City 2 tickets
+      { id: 4, name: "Concert Ticket",  price: ethers.utils.parseEther("0.005"), stock: 0, active: true },
+      { id: 5, name: "Zoo Entry",       price: ethers.utils.parseEther("0.003"), stock: 0, active: true },
+      { id: 6, name: "Hotel Night",     price: ethers.utils.parseEther("0.01"),  stock: 0, active: true },
+      { id: 7, name: "Soccer Ticket",   price: ethers.utils.parseEther("0.002"), stock: 0, active: true },
     ];
     return;
   }
@@ -511,6 +516,31 @@ async function buyFood(foodId) {
   }
 }
 
+// ─── City 2 Ticket Purchases (on-chain via VendingMachine) ────────────────────
+async function buyCityTicket(foodId, label) {
+  if (!state.wallet) { showToast("Connect wallet first."); return; }
+  // Ensure food items are loaded
+  if (!state.foodItems.length) await loadFoodItems();
+  const f = state.foodItems[foodId];
+  if (!f) { showToast(`${label} not available.`); return; }
+
+  if (!state.contracts.vending) {
+    showToast(`[Demo] Purchased ${label} for ${fmtEth(f.price)} (contracts not deployed)`);
+    addGlobalMessage({ sender: "System", text: `${state.nickname || shortAddr(state.wallet)} purchased a ${label}!`, type: "system" });
+    return;
+  }
+
+  try {
+    showToast(`Purchasing ${label}…`);
+    const tx = await state.contracts.vending.buyFood(foodId, 1, { value: f.price });
+    await tx.wait();
+    showToast(`✅ You purchased a ${label}!`);
+    addGlobalMessage({ sender: "System", text: `${state.nickname || shortAddr(state.wallet)} purchased a ${label}!`, type: "system" });
+  } catch (err) {
+    showToast("Error: " + (err.reason || err.message));
+  }
+}
+
 // ─── Skills ───────────────────────────────────────────────────────────────────
 async function openSkills() {
   await loadSkillTypes();
@@ -521,9 +551,16 @@ async function openSkills() {
 async function loadSkillTypes() {
   if (!state.contracts.skillNFT) {
     state.skillTypes = [
-      { id: 0, name: "Swordsmanship", level: 1, mintPrice: ethers.utils.parseEther("0.01"), active: true },
-      { id: 1, name: "Magic",         level: 3, mintPrice: ethers.utils.parseEther("0.05"), active: true },
-      { id: 2, name: "Archery",       level: 2, mintPrice: ethers.utils.parseEther("0.02"), active: true },
+      { id: 0, name: "Swordsmanship",          level: 1, mintPrice: ethers.utils.parseEther("0.01"), active: true },
+      { id: 1, name: "Magic",                  level: 3, mintPrice: ethers.utils.parseEther("0.05"), active: true },
+      { id: 2, name: "Archery",                level: 2, mintPrice: ethers.utils.parseEther("0.02"), active: true },
+      // City 2 skills
+      { id: 3, name: "Pilot License",          level: 5, mintPrice: ethers.utils.parseEther("0.08"), active: true },
+      { id: 4, name: "Masinis License",        level: 3, mintPrice: ethers.utils.parseEther("0.04"), active: true },
+      { id: 5, name: "Lifeguard Certificate",  level: 2, mintPrice: ethers.utils.parseEther("0.03"), active: true },
+      { id: 6, name: "Taxi License",           level: 1, mintPrice: ethers.utils.parseEther("0.02"), active: true },
+      { id: 7, name: "Zookeeper Certificate",  level: 3, mintPrice: ethers.utils.parseEther("0.04"), active: true },
+      { id: 8, name: "Tour Guide",             level: 2, mintPrice: ethers.utils.parseEther("0.03"), active: true },
     ];
     return;
   }
@@ -590,6 +627,7 @@ const WORLD = {
   houses:   [{ x: 120, y: 80, label: "Market" }, { x: 600, y: 120, label: "Skill Shop" }],
   vending:  { x: 380, y: 420 },
   pond:     { x: 620, y: 350, w: 80, h: 50 },
+  portal:   { x: 700, y: 200, w: 52, h: 64, label: "🌴 Coastal City" },
 };
 
 function drawWorld() {
@@ -646,6 +684,43 @@ function drawWorld() {
     ctx.fillStyle = "#2d6a4f";
     ctx.fillRect(t.x - 3, t.y + 10, 6, 10);
   });
+
+  // Travel portal to City 2
+  const port = WORLD.portal;
+  const tick = state.animTick;
+  // Animated glow ring
+  ctx.strokeStyle = `hsl(${(tick * 2) % 360}, 100%, 65%)`;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.ellipse(port.x + port.w / 2, port.y + port.h / 2, port.w / 2 + 6, port.h / 2 + 6, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.lineWidth = 1;
+  // Portal body
+  ctx.fillStyle = "rgba(72,202,228,0.35)";
+  ctx.fillRect(port.x, port.y, port.w, port.h);
+  ctx.strokeStyle = "#48cae4";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(port.x, port.y, port.w, port.h);
+  ctx.lineWidth = 1;
+  // Inner shimmer lines
+  ctx.strokeStyle = `rgba(255,255,255,${0.3 + 0.2 * Math.sin(tick * 0.07)})`;
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 4; i++) {
+    const lx = port.x + 8 + i * 11;
+    ctx.beginPath();
+    ctx.moveTo(lx, port.y + 6);
+    ctx.lineTo(lx + 4, port.y + port.h - 6);
+    ctx.stroke();
+  }
+  ctx.lineWidth = 1;
+  // Label
+  ctx.fillStyle = "#ffd166";
+  ctx.font = "bold 8px monospace";
+  ctx.textAlign = "center";
+  ctx.fillText(port.label, port.x + port.w / 2, port.y + port.h + 13);
+  ctx.fillStyle = "#fff";
+  ctx.font = "7px monospace";
+  ctx.fillText("(Click to Travel)", port.x + port.w / 2, port.y + port.h + 23);
 }
 
 // ─── City 2: Coastal Paradise ─────────────────────────────────────────────────
@@ -691,6 +766,7 @@ const WORLD_CITY2 = {
     { x: 484, y: 268, col: "#ff9800" },
   ],
   soccer: { x: 122, y: 318, w: 184, h: 72 },
+  returnGate: { x: 14, y: 310, w: 52, h: 64, label: "🏙 Modern City" },
 };
 
 function drawCity2() {
@@ -722,6 +798,7 @@ function drawCity2() {
   drawTrain2();
   drawCity2Bots();
   drawCity2Hints();
+  drawReturnGate2();
 }
 
 function drawMountain2() {
@@ -1139,6 +1216,42 @@ function drawCity2Hints() {
   ctx.fillText(tr.onBoard ? "[E] Leave Train" : "[E] Board Train", pos.x, pos.y - 27);
 }
 
+function drawReturnGate2() {
+  const rg = WORLD_CITY2.returnGate;
+  const tick = state.animTick;
+  // Animated glow ring
+  ctx.strokeStyle = `hsl(${(tick * 2 + 120) % 360}, 100%, 65%)`;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.ellipse(rg.x + rg.w / 2, rg.y + rg.h / 2, rg.w / 2 + 6, rg.h / 2 + 6, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.lineWidth = 1;
+  // Gate body
+  ctx.fillStyle = "rgba(255,209,102,0.3)";
+  ctx.fillRect(rg.x, rg.y, rg.w, rg.h);
+  ctx.strokeStyle = "#ffd166";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(rg.x, rg.y, rg.w, rg.h);
+  ctx.lineWidth = 1;
+  // Inner shimmer
+  ctx.strokeStyle = `rgba(255,255,255,${0.3 + 0.2 * Math.sin(tick * 0.07)})`;
+  for (let i = 0; i < 4; i++) {
+    const lx = rg.x + 8 + i * 11;
+    ctx.beginPath();
+    ctx.moveTo(lx, rg.y + 6);
+    ctx.lineTo(lx + 4, rg.y + rg.h - 6);
+    ctx.stroke();
+  }
+  // Label
+  ctx.fillStyle = "#ffd166";
+  ctx.font = "bold 8px monospace";
+  ctx.textAlign = "center";
+  ctx.fillText(rg.label, rg.x + rg.w / 2, rg.y + rg.h + 13);
+  ctx.fillStyle = "#fff";
+  ctx.font = "7px monospace";
+  ctx.fillText("(Click to Travel)", rg.x + rg.w / 2, rg.y + rg.h + 23);
+}
+
 function updateCity2() {
   const tr = state.train;
   const p  = state.player;
@@ -1219,6 +1332,15 @@ function switchCity(city) {
 }
 
 // ─── Jobs ─────────────────────────────────────────────────────────────────────
+
+// Maps job type → skill type ID required (matches deploy.js skill seed order)
+const JOB_SKILL_REQUIRED = {
+  pilot:     3, // Pilot License
+  masinis:   4, // Masinis License
+  lifeguard: 5, // Lifeguard Certificate
+  taxi:      6, // Taxi License
+};
+
 function openJobs() {
   const el = document.getElementById("active-job-display");
   const names = { pilot: "✈️ Pilot", masinis: "🚂 Train Driver (Masinis)", lifeguard: "🛟 Lifeguard", taxi: "🚕 Taxi Driver" };
@@ -1226,11 +1348,29 @@ function openJobs() {
   openModal("modal-jobs");
 }
 
-function takeJob(jobType) {
+async function takeJob(jobType) {
   if (!state.wallet) { showToast("Connect wallet first to take a job."); return; }
   const names = { pilot: "✈️ Pilot", masinis: "🚂 Train Driver (Masinis)", lifeguard: "🛟 Lifeguard", taxi: "🚕 Taxi Driver" };
-  state.jobs.current = jobType;
+  const skillNames = { pilot: "Pilot License", masinis: "Masinis License", lifeguard: "Lifeguard Certificate", taxi: "Taxi License" };
+  const requiredSkillId = JOB_SKILL_REQUIRED[jobType];
   const name = names[jobType];
+
+  // Check skill NFT ownership (on-chain when contracts available, otherwise demo check)
+  if (state.contracts.skillNFT && requiredSkillId !== undefined) {
+    try {
+      const owned = await state.contracts.skillNFT.hasSkill(state.wallet, requiredSkillId);
+      if (!owned) {
+        showToast(`❌ You need the "${skillNames[jobType]}" NFT to work as ${name}. Buy it at the 🎓 School!`);
+        openSkills();
+        return;
+      }
+    } catch (err) {
+      showToast("Error checking skill: " + (err.reason || err.message));
+      return;
+    }
+  }
+
+  state.jobs.current = jobType;
   showToast(`✅ You got the job: ${name}!`);
   addGlobalMessage({ sender: "System", text: `${state.nickname || shortAddr(state.wallet) || "Player"} became a ${name}!`, type: "system" });
   document.getElementById("active-job-display").textContent = `Current job: ${name}`;
@@ -1350,6 +1490,11 @@ canvas.addEventListener("click", (e) => {
         }
       }
     }
+    // City 2 → City 1 return gate
+    const rg = WORLD_CITY2.returnGate;
+    if (cx >= rg.x && cx <= rg.x + rg.w && cy >= rg.y - 8 && cy <= rg.y + rg.h + 26) {
+      switchCity(1); return;
+    }
     // City 2 building interactions
     const c2 = WORLD_CITY2;
     const ap = c2.airport;
@@ -1362,21 +1507,27 @@ canvas.addEventListener("click", (e) => {
     }
     const co = c2.concert;
     if (cx >= co.x && cx <= co.x + co.w && cy >= co.y - 18 && cy <= co.y + co.h) {
-      showToast("🎵 Tonight's concert: CryptoBeats Live! Ticket: 0.005 ETH"); return;
+      buyCityTicket(4, "🎵 CryptoBeats Live Concert Ticket"); return;
     }
     const zo = c2.zoo;
     if (cx >= zo.x && cx <= zo.x + zo.w && cy >= zo.y - 18 && cy <= zo.y + zo.h) {
-      showToast("🦁 City Zoo – Lions, Tigers, Pandas & more! Entry: 0.003 ETH"); return;
+      buyCityTicket(5, "🦁 City Zoo Entry"); return;
     }
     const ho = c2.hotel;
     if (cx >= ho.x && cx <= ho.x + ho.w && cy >= ho.y - 18 && cy <= ho.y + ho.h) {
-      showToast("🏨 Hotel Paradise – Luxury rooms available. Rate: 0.01 ETH/night"); return;
+      buyCityTicket(6, "🏨 Hotel Paradise Night"); return;
     }
     const sf = c2.soccer;
     if (cx >= sf.x - 9 && cx <= sf.x + sf.w + 9 && cy >= sf.y && cy <= sf.y + sf.h + 14) {
-      showToast("⚽ Soccer Field – Match today at 5PM! Admission: 0.002 ETH"); return;
+      buyCityTicket(7, "⚽ Soccer Match Ticket"); return;
     }
     return; // no other click actions in city 2
+  }
+
+  // City 1: Check portal to City 2
+  const port = WORLD.portal;
+  if (cx >= port.x && cx <= port.x + port.w && cy >= port.y - 8 && cy <= port.y + port.h + 26) {
+    switchCity(2); return;
   }
 
   // City 1: Check if click is near vending machine

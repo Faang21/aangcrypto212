@@ -20,7 +20,14 @@ async function main() {
   await skillNFT.addSkillType("Swordsmanship", 1, hre.ethers.utils.parseEther("0.01"));
   await skillNFT.addSkillType("Magic", 3, hre.ethers.utils.parseEther("0.05"));
   await skillNFT.addSkillType("Archery", 2, hre.ethers.utils.parseEther("0.02"));
-  console.log("  Seeded 3 skill types");
+  // City 2 job skills (IDs 3-8)
+  await skillNFT.addSkillType("Pilot License", 5, hre.ethers.utils.parseEther("0.08"));
+  await skillNFT.addSkillType("Masinis License", 3, hre.ethers.utils.parseEther("0.04"));
+  await skillNFT.addSkillType("Lifeguard Certificate", 2, hre.ethers.utils.parseEther("0.03"));
+  await skillNFT.addSkillType("Taxi License", 1, hre.ethers.utils.parseEther("0.02"));
+  await skillNFT.addSkillType("Zookeeper Certificate", 3, hre.ethers.utils.parseEther("0.04"));
+  await skillNFT.addSkillType("Tour Guide", 2, hre.ethers.utils.parseEther("0.03"));
+  console.log("  Seeded 9 skill types (3 City 1 + 6 City 2)");
 
   // 3. HouseNFT
   const HouseNFT = await hre.ethers.getContractFactory("HouseNFT");
@@ -74,7 +81,12 @@ async function main() {
   await vending.addFood("Bread", hre.ethers.utils.parseEther("0.002"), 0);
   await vending.addFood("Potion", hre.ethers.utils.parseEther("0.005"), 0);
   await vending.addFood("Elixir", hre.ethers.utils.parseEther("0.01"), 0);
-  console.log("  Seeded 4 food items");
+  // City 2 ticket items (IDs 4-7)
+  await vending.addFood("Concert Ticket", hre.ethers.utils.parseEther("0.005"), 0);
+  await vending.addFood("Zoo Entry", hre.ethers.utils.parseEther("0.003"), 0);
+  await vending.addFood("Hotel Night", hre.ethers.utils.parseEther("0.01"), 0);
+  await vending.addFood("Soccer Ticket", hre.ethers.utils.parseEther("0.002"), 0);
+  console.log("  Seeded 8 vending items (4 food + 4 City 2 tickets)");
 
   // Print summary
   console.log("\n=== Deployment Summary ===");
