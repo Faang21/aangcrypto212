@@ -552,6 +552,40 @@ button:active { opacity: .75; }
 .toast.success { background: var(--suc); }
 .toast.error   { background: var(--dan); }
 
+/* ── Vendor Autocomplete ──────────────────────── */
+.vnd-ac-wrap { position: relative; }
+.vnd-ac-dropdown {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0; right: 0;
+  background: var(--sfc);
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.13);
+  list-style: none;
+  margin: 0; padding: 4px 0;
+  z-index: 1000;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.vnd-ac-item {
+  padding: 8px 14px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--txt);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.vnd-ac-item:hover { background: #eff6ff; }
+.vnd-ac-new {
+  color: var(--pri);
+  font-weight: 600;
+  border-top: 1px solid #e2e8f0;
+  margin-top: 2px;
+}
+.vnd-ac-new:hover { background: #dbeafe; }
+
 /* ── Helpers ──────────────────────────────────── */
 .hidden { display: none !important; }
 

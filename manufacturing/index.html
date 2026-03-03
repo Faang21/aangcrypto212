@@ -636,7 +636,7 @@
     <h2 id="m-ap-title">New Vendor Invoice</h2>
     <div class="fg2">
       <div class="fg"><label>Invoice #</label><input id="ap-no" type="text" placeholder="INV-001" /></div>
-      <div class="fg"><label>Vendor</label><input id="ap-vendor" type="text" placeholder="PT. Supplier ABC" /></div>
+      <div class="fg"><label>Vendor</label><div class="vnd-ac-wrap"><input id="ap-vendor" type="text" placeholder="PT. Supplier ABC" autocomplete="off" /></div></div>
       <div class="fg"><label>Invoice Date</label><input id="ap-date" type="date" /></div>
       <div class="fg"><label>Due Date</label><input id="ap-due" type="date" /></div>
       <div class="fg"><label>Amount (IDR)</label><input id="ap-amount" type="number" min="0" step="1000" /></div>
@@ -672,7 +672,7 @@
     <div class="fg2">
       <div class="fg"><label>Journal #</label><input id="apj-no" type="text" placeholder="APJNL-001" /></div>
       <div class="fg"><label>Date</label><input id="apj-date" type="date" /></div>
-      <div class="fg"><label>Vendor</label><input id="apj-vendor" type="text" placeholder="PT. Supplier ABC" /></div>
+      <div class="fg"><label>Vendor</label><div class="vnd-ac-wrap"><input id="apj-vendor" type="text" placeholder="PT. Supplier ABC" autocomplete="off" /></div></div>
       <div class="fg"><label>Account</label>
         <select id="apj-account">
           <option value="Accounts Payable">Accounts Payable</option>
@@ -696,7 +696,7 @@
     <h2 id="m-appm-title">New Vendor Payment</h2>
     <div class="fg2">
       <div class="fg"><label>Payment #</label><input id="appm-no" type="text" placeholder="PAY-2024-001" /></div>
-      <div class="fg"><label>Vendor</label><input id="appm-vendor" type="text" placeholder="PT. Supplier ABC" /></div>
+      <div class="fg"><label>Vendor</label><div class="vnd-ac-wrap"><input id="appm-vendor" type="text" placeholder="PT. Supplier ABC" autocomplete="off" /></div></div>
       <div class="fg"><label>Payment Date</label><input id="appm-date" type="date" /></div>
       <div class="fg"><label>Amount (IDR)</label><input id="appm-amount" type="number" min="0" step="1000" /></div>
       <div class="fg"><label>Method</label>
@@ -731,7 +731,7 @@
     <h2 id="m-appr-title">New Prepayment (Uang Muka)</h2>
     <div class="fg2">
       <div class="fg"><label>Prepayment #</label><input id="appr-no" type="text" placeholder="PREP-2024-001" /></div>
-      <div class="fg"><label>Vendor</label><input id="appr-vendor" type="text" placeholder="PT. Supplier ABC" /></div>
+      <div class="fg"><label>Vendor</label><div class="vnd-ac-wrap"><input id="appr-vendor" type="text" placeholder="PT. Supplier ABC" autocomplete="off" /></div></div>
       <div class="fg"><label>Date</label><input id="appr-date" type="date" /></div>
       <div class="fg"><label>Amount (IDR)</label><input id="appr-amount" type="number" min="0" step="1000" /></div>
       <div class="fg"><label>Applied To Invoice</label><input id="appr-applied" type="text" placeholder="INV-2024-001 (or leave blank)" /></div>
@@ -777,6 +777,8 @@
       <div class="fg"><label>Phone</label><input id="vnd-phone" type="text" placeholder="021-5551234" /></div>
       <div class="fg"><label>Email</label><input id="vnd-email" type="email" placeholder="info@supplier.co.id" /></div>
       <div class="fg"><label>Tax ID (NPWP)</label><input id="vnd-taxid" type="text" placeholder="01.234.567.8-901.000" /></div>
+      <div class="fg"><label>VAT / PPN (%)</label><input id="vnd-vat" type="number" min="0" max="100" step="0.1" placeholder="11" /></div>
+      <div class="fg"><label>PPh 23 (%)</label><input id="vnd-pph23" type="number" min="0" max="100" step="0.1" placeholder="2" /></div>
       <div class="fg"><label>City</label><input id="vnd-city" type="text" placeholder="Jakarta" /></div>
       <div class="fg"><label>Status</label>
         <select id="vnd-status">
@@ -887,7 +889,7 @@
     <h2 id="m-po-title">New Purchase Order</h2>
     <div class="fg2">
       <div class="fg"><label>PO #</label><input id="po-no" type="text" placeholder="PO-001" /></div>
-      <div class="fg"><label>Vendor</label><input id="po-vendor" type="text" placeholder="PT. Supplier ABC" /></div>
+      <div class="fg"><label>Vendor</label><div class="vnd-ac-wrap"><input id="po-vendor" type="text" placeholder="PT. Supplier ABC" autocomplete="off" /></div></div>
       <div class="fg"><label>Date</label><input id="po-date" type="date" /></div>
       <div class="fg"><label>Status</label>
         <select id="po-status"><option value="draft">Draft</option><option value="approved">Approved</option><option value="received">Received</option><option value="cancelled">Cancelled</option></select>
