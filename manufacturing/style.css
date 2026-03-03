@@ -457,7 +457,62 @@ button:active { opacity: .75; }
 .fg input:focus,
 .fg select:focus { border-color: var(--pri); }
 
-/* ── Reports ──────────────────────────────────── */
+/* ── AP Tabs ───────────────────────────────────── */
+.ap-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 16px;
+  border-bottom: 2px solid var(--bdr);
+  padding-bottom: 0;
+}
+.ap-tab {
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 8px 13px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  margin-bottom: -2px;
+  border-radius: 6px 6px 0 0;
+  transition: color .15s, border-color .15s, background .15s;
+  white-space: nowrap;
+}
+.ap-tab:hover { color: var(--pri); background: #eff6ff; }
+.ap-tab.active { color: var(--pri); border-bottom-color: var(--pri); background: #eff6ff; }
+.ap-pane { }
+.ap-pane.hidden { display: none; }
+
+/* ── Extra Badges ──────────────────────────────── */
+.badge.b-approved    { background: #dcfce7; color: #166534; }
+.badge.b-submitted   { background: #dbeafe; color: #1e40af; }
+.badge.b-in-review   { background: #fef9c3; color: #854d0e; }
+.badge.b-rejected    { background: #fee2e2; color: #991b1b; }
+.badge.b-processed   { background: #e0e7ff; color: #3730a3; }
+.badge.b-settled     { background: #dcfce7; color: #166534; }
+.badge.b-cancelled   { background: #f1f5f9; color: #475569; }
+.badge.b-open        { background: #dbeafe; color: #1e40af; }
+.badge.b-applied     { background: #dcfce7; color: #166534; }
+.badge.b-closed      { background: #f1f5f9; color: #475569; }
+.badge.b-active      { background: #dcfce7; color: #166534; }
+.badge.b-inactive    { background: #f1f5f9; color: #475569; }
+.badge.b-blocked     { background: #fee2e2; color: #991b1b; }
+.badge.b-matched     { background: #dcfce7; color: #166534; }
+.badge.b-partial     { background: #fef9c3; color: #854d0e; }
+.badge.b-unmatched   { background: #fee2e2; color: #991b1b; }
+.badge.b-transfer    { background: #dbeafe; color: #1e40af; }
+.badge.b-check       { background: #e0e7ff; color: #3730a3; }
+.badge.b-eft         { background: #d1fae5; color: #065f46; }
+.badge.b-giro        { background: #fce7f3; color: #9d174d; }
+.badge.b-cash        { background: #fef9c3; color: #854d0e; }
+.badge.b-supplier    { background: #dbeafe; color: #1e40af; }
+.badge.b-contractor  { background: #e0e7ff; color: #3730a3; }
+.badge.b-service     { background: #fce7f3; color: #9d174d; }
+.badge.b-utility     { background: #fef9c3; color: #854d0e; }
+
+
 .reports-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
