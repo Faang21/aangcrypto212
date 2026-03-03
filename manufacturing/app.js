@@ -209,9 +209,10 @@ function seedDemoData() {
   if (DB.getObj('seeded')) return;
 
   DB.set('ap', [
-    { id: uid(), no: 'INV-2024-001', vendor: 'PT. Bahan Baku Nusantara', date: '2024-01-05', due: '2024-02-05', amount: 15000000, status: 'paid',    desc: 'Raw material purchase' },
-    { id: uid(), no: 'INV-2024-002', vendor: 'CV. Suku Cadang Jaya',     date: '2024-02-10', due: '2024-03-10', amount:  8500000, status: 'pending', desc: 'Spare parts order' },
-    { id: uid(), no: 'INV-2024-003', vendor: 'PT. Logistik Maju',        date: '2024-01-20', due: '2024-01-30', amount:  3200000, status: 'overdue', desc: 'Freight charges' },
+    { id: uid(), no: 'INV-2024-001', vendor: 'PT. Bahan Baku Nusantara', date: '2024-01-05', due: '2024-02-05', amount: 15000000, status: 'paid',    poref: 'PO-2024-001', workflow: 'approved', desc: 'Raw material purchase' },
+    { id: uid(), no: 'INV-2024-002', vendor: 'CV. Suku Cadang Jaya',     date: '2024-02-10', due: '2024-03-10', amount:  8500000, status: 'pending', poref: 'PO-2024-002', workflow: 'in-review', desc: 'Spare parts order' },
+    { id: uid(), no: 'INV-2024-003', vendor: 'PT. Logistik Maju',        date: '2024-01-20', due: '2024-01-30', amount:  3200000, status: 'overdue', poref: '',            workflow: 'submitted', desc: 'Freight charges' },
+    { id: uid(), no: 'INV-2024-004', vendor: 'PT. Kemasan Mandiri',      date: '2024-02-22', due: '2024-03-22', amount:  2300000, status: 'approved', poref: 'PO-2024-003', workflow: 'approved', desc: 'Packaging boxes' },
   ]);
 
   DB.set('ar', [
@@ -286,6 +287,32 @@ function seedDemoData() {
     { id: uid(), empid: 'EMP-003', name: 'Ahmad Fauzi',    dept: 'Marketing',   pos: 'Marketing Specialist',  join: '2021-01-10', salary: 8500000,  status: 'active' },
     { id: uid(), empid: 'EMP-004', name: 'Dewi Kartika',   dept: 'Procurement', pos: 'Procurement Officer',   join: '2022-05-20', salary: 7000000,  status: 'active' },
     { id: uid(), empid: 'EMP-005', name: 'Eko Prasetyo',   dept: 'Warehouse',   pos: 'Warehouse Staff',       join: '2023-02-01', salary: 5500000,  status: 'probation' },
+  ]);
+
+  DB.set('ap-journal', [
+    { id: uid(), no: 'APJNL-001', date: '2024-01-15', vendor: 'PT. Logistik Maju',   account: 'Accounts Payable', debit: 3200000, credit: 0,       desc: 'Accrual freight charges Jan' },
+    { id: uid(), no: 'APJNL-002', date: '2024-02-01', vendor: 'PT. Bahan Baku Nusantara', account: 'Trade Payables', debit: 0, credit: 15000000, desc: 'Settlement INV-2024-001' },
+    { id: uid(), no: 'APJNL-003', date: '2024-02-20', vendor: 'CV. Suku Cadang Jaya', account: 'Accrued Expenses', debit: 1500000, credit: 0,     desc: 'Accrual spare parts maintenance' },
+  ]);
+
+  DB.set('ap-payments', [
+    { id: uid(), no: 'PAY-2024-001', vendor: 'PT. Bahan Baku Nusantara', date: '2024-02-05', amount: 15000000, method: 'transfer', status: 'settled', invref: 'INV-2024-001', bank: 'BCA – 1234567890', notes: 'Full payment' },
+    { id: uid(), no: 'PAY-2024-002', vendor: 'CV. Suku Cadang Jaya',     date: '2024-03-08', amount:  8500000, method: 'eft',      status: 'pending', invref: 'INV-2024-002', bank: 'Mandiri – 9876543210', notes: '' },
+    { id: uid(), no: 'PAY-2024-003', vendor: 'PT. Logistik Maju',        date: '2024-02-05', amount:  3200000, method: 'giro',     status: 'processed', invref: 'INV-2024-003', bank: 'BNI – 1122334455', notes: 'Giro payment overdue' },
+  ]);
+
+  DB.set('ap-prepay', [
+    { id: uid(), no: 'PREP-2024-001', vendor: 'PT. Kemasan Mandiri',      date: '2024-02-18', amount: 1000000, appliedTo: 'INV-2024-004', status: 'applied', notes: 'Down payment 50%' },
+    { id: uid(), no: 'PREP-2024-002', vendor: 'CV. Suku Cadang Jaya',     date: '2024-02-25', amount: 2000000, appliedTo: '',             status: 'open',    notes: 'Advance for Q2 orders' },
+  ]);
+
+  DB.set('vendors', [
+    { id: uid(), code: 'VND-001', name: 'PT. Bahan Baku Nusantara',  group: 'supplier',   terms: 'NET30',  contact: 'Hendra Wijaya',  phone: '021-5551001', email: 'hendra@bbn.co.id',     taxid: '01.234.567.8-001.000', city: 'Bekasi',   status: 'active',   address: 'Jl. Industri Raya No. 12, Bekasi' },
+    { id: uid(), code: 'VND-002', name: 'CV. Suku Cadang Jaya',      group: 'supplier',   terms: 'NET60',  contact: 'Rini Susanti',   phone: '021-5552002', email: 'rini@scj.co.id',       taxid: '01.234.567.8-002.000', city: 'Tangerang',status: 'active',   address: 'Jl. Pahlawan No. 55, Tangerang' },
+    { id: uid(), code: 'VND-003', name: 'PT. Logistik Maju',         group: 'service',    terms: 'NET14',  contact: 'Arif Budiman',   phone: '021-5553003', email: 'arif@logmaju.co.id',   taxid: '01.234.567.8-003.000', city: 'Jakarta',  status: 'active',   address: 'Jl. Sudirman No. 100, Jakarta' },
+    { id: uid(), code: 'VND-004', name: 'PT. Kemasan Mandiri',       group: 'supplier',   terms: 'NET30',  contact: 'Sinta Dewi',     phone: '022-5554004', email: 'sinta@kemasan.co.id',  taxid: '01.234.567.8-004.000', city: 'Bandung',  status: 'active',   address: 'Jl. Gatot Subroto No. 7, Bandung' },
+    { id: uid(), code: 'VND-005', name: 'PT. Listrik Sejahtera',     group: 'utility',    terms: 'COD',    contact: 'Wahyu Prakoso',  phone: '021-5555005', email: 'wahyu@listrik.co.id',  taxid: '01.234.567.8-005.000', city: 'Jakarta',  status: 'active',   address: 'Jl. PLN No. 1, Jakarta' },
+    { id: uid(), code: 'VND-006', name: 'CV. Jasa Konstruksi Maju',  group: 'contractor', terms: 'NET60',  contact: 'Bambang Utomo',  phone: '021-5556006', email: 'bambang@jkm.co.id',    taxid: '01.234.567.8-006.000', city: 'Depok',    status: 'inactive', address: 'Jl. Margonda No. 45, Depok' },
   ]);
 
   DB.setObj('seeded', true);
@@ -366,7 +393,51 @@ function renderDashboard() {
 /* ═══════════════════════════════════════════════════════════
    ACCOUNTS PAYABLE
 ═══════════════════════════════════════════════════════════ */
-function renderAP() {
+
+/* ── Tab routing ── */
+let _apTab = 'invoices';
+
+function switchAPTab(tab) {
+  _apTab = tab;
+  document.querySelectorAll('.ap-tab').forEach(b => {
+    b.classList.toggle('active', b.dataset.aptab === tab);
+  });
+  document.querySelectorAll('.ap-pane').forEach(p => p.classList.add('hidden'));
+  const pane = $('ap-pane-' + tab);
+  if (pane) pane.classList.remove('hidden');
+
+  const renders = {
+    invoices:    renderAPInvoices,
+    journal:     renderInvoiceJournal,
+    pending:     renderPendingInvoices,
+    matching:    renderAPMatching,
+    payments:    renderAPPayments,
+    prepayments: renderPrepayments,
+    vendors:     renderVendors,
+    txns:        renderVendorTxns,
+  };
+  if (renders[tab]) renders[tab]();
+}
+
+function apNewRecord() {
+  const actions = {
+    invoices:    () => openAPForm(null),
+    journal:     () => openAPJournalForm(null),
+    pending:     () => openAPForm(null),
+    matching:    () => openAPForm(null),
+    payments:    () => openAPPaymentForm(null),
+    prepayments: () => openPrepaymentForm(null),
+    vendors:     () => openVendorForm(null),
+    txns:        () => {},
+  };
+  (actions[_apTab] || (() => openAPForm(null)))();
+}
+
+/* Called by navigation switcher – renders the current active AP sub-tab */
+function renderAP() { switchAPTab(_apTab); }
+
+/* ── 1. Vendor Invoices ── */
+function renderAPInvoices() {
   const q  = ($('ap-q')  || {value:''}).value.toLowerCase();
   const sf = ($('ap-sf') || {value:''}).value;
   const data = DB.get('ap').filter(r =>
@@ -379,27 +450,31 @@ function renderAP() {
       <td>${r.vendor}</td>
       <td>${r.date}</td>
       <td>${fmt(r.amount)}</td>
-      <td>${r.due}</td>
+      <td>${r.due || '—'}</td>
+      <td>${r.poref ? `<span style="font-size:.78rem;color:var(--pri)">${r.poref}</span>` : '—'}</td>
       <td>${badge(r.status)}</td>
       <td>
-        ${r.status !== 'paid' ? `<button class="btn-xs btn-pay" onclick="markPaid('ap','${r.id}')">Pay</button> ` : ''}
+        ${r.status !== 'paid' ? `<button class="btn-xs btn-pay" onclick="markPaidAP('${r.id}')">Pay</button> ` : ''}
+        ${r.status === 'pending' ? `<button class="btn-xs" style="background:#e0e7ff;color:#3730a3" onclick="approveAPInvoice('${r.id}')">Approve</button> ` : ''}
         <button class="btn-xs btn-edit" onclick="editAP('${r.id}')">Edit</button>
-        <button class="btn-xs btn-del"  onclick="deleteRecord('ap','${r.id}',renderAP)">Del</button>
+        <button class="btn-xs btn-del"  onclick="deleteRecord('ap','${r.id}',renderAPInvoices)">Del</button>
       </td>
     </tr>
-  `).join('') : '<tr class="empty-row"><td colspan="7">No records found.</td></tr>';
+  `).join('') : '<tr class="empty-row"><td colspan="8">No records found.</td></tr>';
 }
 
 function openAPForm(rec) {
   $('m-ap-title').textContent = rec ? 'Edit Vendor Invoice' : 'New Vendor Invoice';
-  $('ap-no').value     = rec ? rec.no     : '';
-  $('ap-vendor').value = rec ? rec.vendor : '';
-  $('ap-date').value   = rec ? rec.date   : today();
-  $('ap-due').value    = rec ? rec.due    : '';
-  $('ap-amount').value = rec ? rec.amount : '';
-  $('ap-status').value = rec ? rec.status : 'pending';
-  $('ap-desc').value   = rec ? rec.desc   : '';
-  $('ap-eid').value    = rec ? rec.id     : '';
+  $('ap-no').value       = rec ? rec.no       : '';
+  $('ap-vendor').value   = rec ? rec.vendor   : '';
+  $('ap-date').value     = rec ? rec.date     : today();
+  $('ap-due').value      = rec ? rec.due      : '';
+  $('ap-amount').value   = rec ? rec.amount   : '';
+  $('ap-status').value   = rec ? rec.status   : 'pending';
+  $('ap-poref').value    = rec ? (rec.poref || '') : '';
+  $('ap-workflow').value = rec ? (rec.workflow || 'submitted') : 'submitted';
+  $('ap-desc').value     = rec ? rec.desc     : '';
+  $('ap-eid').value      = rec ? rec.id       : '';
   openModal('m-ap');
 }
 
@@ -410,13 +485,15 @@ function saveAP() {
   if (!no || !vendor || isNaN(amount)) { showToast('Invoice #, vendor and amount are required.', 'error'); return; }
 
   const rec = {
-    id:     $('ap-eid').value || uid(),
+    id:       $('ap-eid').value || uid(),
     no, vendor,
-    date:   $('ap-date').value,
-    due:    $('ap-due').value,
+    date:     $('ap-date').value,
+    due:      $('ap-due').value,
     amount,
-    status: $('ap-status').value,
-    desc:   $('ap-desc').value.trim(),
+    status:   $('ap-status').value,
+    poref:    $('ap-poref').value.trim(),
+    workflow: $('ap-workflow').value,
+    desc:     $('ap-desc').value.trim(),
   };
 
   const data = DB.get('ap');
@@ -425,7 +502,7 @@ function saveAP() {
   DB.set('ap', data);
   closeModal('m-ap');
   showToast(idx >= 0 ? 'Invoice updated.' : 'Invoice added.');
-  renderAP();
+  renderAPInvoices();
 }
 
 function editAP(id) {
@@ -433,11 +510,538 @@ function editAP(id) {
   if (rec) openAPForm(rec);
 }
 
+function markPaidAP(id) {
+  const data = DB.get('ap');
+  const rec  = data.find(r => r.id === id);
+  if (rec) { rec.status = 'paid'; DB.set('ap', data); renderAPInvoices(); showToast('Invoice marked as paid.'); }
+}
+
 function markPaid(module, id) {
   const data = DB.get(module);
   const rec  = data.find(r => r.id === id);
-  if (rec) { rec.status = 'paid'; DB.set(module, data); module === 'ap' ? renderAP() : renderAR(); showToast('Marked as paid.'); }
+  if (rec) {
+    rec.status = 'paid';
+    DB.set(module, data);
+    if (module === 'ap') renderAPInvoices(); else renderAR();
+    showToast('Marked as paid.');
+  }
 }
+
+function approveAPInvoice(id) {
+  const data = DB.get('ap');
+  const rec  = data.find(r => r.id === id);
+  if (rec) { rec.status = 'approved'; rec.workflow = 'approved'; DB.set('ap', data); renderAPInvoices(); showToast('Invoice approved.'); }
+}
+
+/* ── 2. Invoice Journal ── */
+function renderInvoiceJournal() {
+  const q = ($('apj-q') || {value:''}).value.toLowerCase();
+  const data = DB.get('ap-journal').filter(r =>
+    !q || r.no.toLowerCase().includes(q) || r.vendor.toLowerCase().includes(q) || r.desc.toLowerCase().includes(q)
+  );
+  $('apj-body').innerHTML = data.length ? data.map(r => `
+    <tr>
+      <td><strong>${r.no}</strong></td>
+      <td>${r.date}</td>
+      <td>${r.vendor}</td>
+      <td>${r.account}</td>
+      <td>${r.debit ? fmt(r.debit) : '—'}</td>
+      <td>${r.credit ? fmt(r.credit) : '—'}</td>
+      <td>${r.desc}</td>
+      <td>
+        <button class="btn-xs btn-edit" onclick="editAPJournal('${r.id}')">Edit</button>
+        <button class="btn-xs btn-del"  onclick="deleteRecord('ap-journal','${r.id}',renderInvoiceJournal)">Del</button>
+      </td>
+    </tr>
+  `).join('') : '<tr class="empty-row"><td colspan="8">No journal entries found.</td></tr>';
+}
+
+function openAPJournalForm(rec) {
+  $('m-apj-title').textContent = rec ? 'Edit Invoice Journal' : 'New Invoice Journal';
+  $('apj-no').value      = rec ? rec.no      : '';
+  $('apj-date').value    = rec ? rec.date    : today();
+  $('apj-vendor').value  = rec ? rec.vendor  : '';
+  $('apj-account').value = rec ? rec.account : 'Accounts Payable';
+  $('apj-debit').value   = rec ? rec.debit   : 0;
+  $('apj-credit').value  = rec ? rec.credit  : 0;
+  $('apj-desc').value    = rec ? rec.desc    : '';
+  $('apj-eid').value     = rec ? rec.id      : '';
+  openModal('m-ap-jnl');
+}
+
+function saveAPJournal() {
+  const no     = $('apj-no').value.trim();
+  const vendor = $('apj-vendor').value.trim();
+  if (!no || !vendor) { showToast('Journal # and vendor are required.', 'error'); return; }
+
+  const rec = {
+    id:      $('apj-eid').value || uid(),
+    no, vendor,
+    date:    $('apj-date').value,
+    account: $('apj-account').value,
+    debit:   parseFloat($('apj-debit').value) || 0,
+    credit:  parseFloat($('apj-credit').value) || 0,
+    desc:    $('apj-desc').value.trim(),
+  };
+
+  const data = DB.get('ap-journal');
+  const idx  = data.findIndex(r => r.id === rec.id);
+  if (idx >= 0) data[idx] = rec; else data.unshift(rec);
+  DB.set('ap-journal', data);
+  closeModal('m-ap-jnl');
+  showToast(idx >= 0 ? 'Journal updated.' : 'Journal entry added.');
+  renderInvoiceJournal();
+}
+
+function editAPJournal(id) {
+  const rec = DB.get('ap-journal').find(r => r.id === id);
+  if (rec) openAPJournalForm(rec);
+}
+
+/* ── 3. Pending Invoices (Workflow) ── */
+function renderPendingInvoices() {
+  const q  = ($('apd-q')  || {value:''}).value.toLowerCase();
+  const wf = ($('apd-wf') || {value:''}).value;
+  const data = DB.get('ap').filter(r =>
+    r.status !== 'paid' && r.status !== 'cancelled' &&
+    (!q  || r.no.toLowerCase().includes(q) || r.vendor.toLowerCase().includes(q)) &&
+    (!wf || r.workflow === wf)
+  );
+  $('apd-body').innerHTML = data.length ? data.map(r => `
+    <tr>
+      <td>${r.no}</td>
+      <td>${r.vendor}</td>
+      <td>${r.date}</td>
+      <td>${fmt(r.amount)}</td>
+      <td>${badge(r.workflow || 'submitted')}</td>
+      <td>${r.approver || '—'}</td>
+      <td>
+        ${(r.workflow || 'submitted') !== 'approved' && (r.workflow || 'submitted') !== 'rejected'
+          ? `<button class="btn-xs" style="background:#e0e7ff;color:#3730a3" onclick="wfApprove('${r.id}')">Approve</button> `
+            + `<button class="btn-xs btn-del" onclick="wfReject('${r.id}')">Reject</button> `
+          : ''}
+        ${(r.workflow || 'submitted') === 'approved' && r.status !== 'paid'
+          ? `<button class="btn-xs btn-pay" onclick="wfPost('${r.id}')">Post</button> `
+          : ''}
+        <button class="btn-xs btn-edit" onclick="editAP('${r.id}')">Edit</button>
+      </td>
+    </tr>
+  `).join('') : '<tr class="empty-row"><td colspan="7">No pending invoices.</td></tr>';
+}
+
+function wfApprove(id) {
+  const data = DB.get('ap');
+  const rec  = data.find(r => r.id === id);
+  if (rec) {
+    rec.workflow = 'approved';
+    rec.approver = currentUser ? currentUser.name : 'System';
+    DB.set('ap', data);
+    renderPendingInvoices();
+    showToast('Invoice approved.');
+  }
+}
+
+function wfReject(id) {
+  const data = DB.get('ap');
+  const rec  = data.find(r => r.id === id);
+  if (rec) {
+    rec.workflow = 'rejected';
+    DB.set('ap', data);
+    renderPendingInvoices();
+    showToast('Invoice rejected.', 'error');
+  }
+}
+
+function wfPost(id) {
+  const data = DB.get('ap');
+  const rec  = data.find(r => r.id === id);
+  if (rec) {
+    rec.status = 'approved';
+    DB.set('ap', data);
+    renderPendingInvoices();
+    showToast('Invoice posted to AP.');
+  }
+}
+
+/* ── 4. 3-Way Matching ── */
+function renderAPMatching() {
+  const invoices = DB.get('ap');
+  const pos      = DB.get('po');
+  const grs      = DB.get('recv');
+
+  const rows = invoices.filter(inv => inv.poref).map(inv => {
+    const po    = pos.find(p => p.no === inv.poref);
+    const gr    = grs.find(g => g.po === inv.poref);
+    const poAmt = po ? Number(po.total) : null;
+    // GR records don't carry a monetary total; use PO total for complete GRs, partial indicator for partial
+    const grAmt = gr
+      ? (gr.status === 'complete' ? poAmt : (poAmt !== null ? poAmt * 0.5 : null))
+      : null;
+    const invAmt = Number(inv.amount);
+
+    let matchStatus = 'unmatched';
+    if (po && gr) {
+      const diff = Math.abs(poAmt - invAmt);
+      matchStatus = diff < invAmt * 0.01 ? 'matched' : 'partial';
+    } else if (po || gr) {
+      matchStatus = 'partial';
+    }
+
+    return { inv, po, gr, poAmt, grAmt, invAmt, matchStatus };
+  });
+
+  const noMatch = invoices.filter(inv => !inv.poref).map(inv => ({
+    inv, po: null, gr: null, poAmt: null, grAmt: null, invAmt: Number(inv.amount), matchStatus: 'unmatched'
+  }));
+
+  const all = [...rows, ...noMatch];
+
+  $('apm-body').innerHTML = all.length ? all.map(({ inv, po, gr, poAmt, grAmt, invAmt, matchStatus }) => `
+    <tr>
+      <td>${inv.no}</td>
+      <td>${inv.vendor}</td>
+      <td>${po ? po.no : '—'}</td>
+      <td>${gr ? gr.no : '—'}</td>
+      <td>${poAmt !== null ? fmt(poAmt) : '—'}</td>
+      <td>${grAmt !== null ? fmt(grAmt) + (gr && gr.status === 'partial' ? ' <em style="font-size:.72rem">(partial)</em>' : '') : '—'}</td>
+      <td>${fmt(invAmt)}</td>
+      <td>${badge(matchStatus)}</td>
+      <td>
+        ${matchStatus === 'matched'
+          ? `<span style="font-size:.78rem;color:var(--suc)">✓ Matched</span>`
+          : `<button class="btn-xs btn-edit" onclick="editAP('${inv.id}')">Set PO Ref</button>`}
+      </td>
+    </tr>
+  `).join('') : '<tr class="empty-row"><td colspan="9">No invoices found.</td></tr>';
+}
+
+/* ── 5. Payments & Settlement ── */
+function renderAPPayments() {
+  const q  = ($('appm-q')  || {value:''}).value.toLowerCase();
+  const mf = ($('appm-mf') || {value:''}).value;
+  const data = DB.get('ap-payments').filter(r =>
+    (!q  || r.no.toLowerCase().includes(q) || r.vendor.toLowerCase().includes(q)) &&
+    (!mf || r.method === mf)
+  );
+
+  const total    = data.reduce((s, r) => s + Number(r.amount), 0);
+  const settled  = data.filter(r => r.status === 'settled').reduce((s, r) => s + Number(r.amount), 0);
+  const pending  = data.filter(r => r.status === 'pending').reduce((s, r) => s + Number(r.amount), 0);
+  if ($('appm-total'))   $('appm-total').textContent   = fmt(total);
+  if ($('appm-settled')) $('appm-settled').textContent = fmt(settled);
+  if ($('appm-pend'))    $('appm-pend').textContent    = fmt(pending);
+
+  $('appm-body').innerHTML = data.length ? data.map(r => `
+    <tr>
+      <td><strong>${r.no}</strong></td>
+      <td>${r.vendor}</td>
+      <td>${r.date}</td>
+      <td>${fmt(r.amount)}</td>
+      <td>${badge(r.method)}</td>
+      <td>${r.invref || '—'}</td>
+      <td>${badge(r.status)}</td>
+      <td>
+        ${r.status === 'pending' ? `<button class="btn-xs btn-pay" onclick="settleAPPayment('${r.id}')">Settle</button> ` : ''}
+        <button class="btn-xs btn-edit" onclick="editAPPayment('${r.id}')">Edit</button>
+        <button class="btn-xs btn-del"  onclick="deleteRecord('ap-payments','${r.id}',renderAPPayments)">Del</button>
+      </td>
+    </tr>
+  `).join('') : '<tr class="empty-row"><td colspan="8">No payment records found.</td></tr>';
+}
+
+function openAPPaymentForm(rec) {
+  $('m-appm-title').textContent = rec ? 'Edit Vendor Payment' : 'New Vendor Payment';
+  $('appm-no').value     = rec ? rec.no     : '';
+  $('appm-vendor').value = rec ? rec.vendor : '';
+  $('appm-date').value   = rec ? rec.date   : today();
+  $('appm-amount').value = rec ? rec.amount : '';
+  $('appm-method').value = rec ? rec.method : 'transfer';
+  $('appm-status').value = rec ? rec.status : 'pending';
+  $('appm-invref').value = rec ? (rec.invref || '') : '';
+  $('appm-bank').value   = rec ? (rec.bank   || '') : '';
+  $('appm-notes').value  = rec ? (rec.notes  || '') : '';
+  $('appm-eid').value    = rec ? rec.id     : '';
+  openModal('m-ap-pay');
+}
+
+function saveAPPayment() {
+  const no     = $('appm-no').value.trim();
+  const vendor = $('appm-vendor').value.trim();
+  const amount = parseFloat($('appm-amount').value);
+  if (!no || !vendor || isNaN(amount)) { showToast('Payment #, vendor and amount are required.', 'error'); return; }
+
+  const rec = {
+    id:     $('appm-eid').value || uid(),
+    no, vendor,
+    date:   $('appm-date').value,
+    amount,
+    method: $('appm-method').value,
+    status: $('appm-status').value,
+    invref: $('appm-invref').value.trim(),
+    bank:   $('appm-bank').value.trim(),
+    notes:  $('appm-notes').value.trim(),
+  };
+
+  const data = DB.get('ap-payments');
+  const idx  = data.findIndex(r => r.id === rec.id);
+  if (idx >= 0) data[idx] = rec; else data.unshift(rec);
+  DB.set('ap-payments', data);
+  closeModal('m-ap-pay');
+  showToast(idx >= 0 ? 'Payment updated.' : 'Payment recorded.');
+  renderAPPayments();
+}
+
+function editAPPayment(id) {
+  const rec = DB.get('ap-payments').find(r => r.id === id);
+  if (rec) openAPPaymentForm(rec);
+}
+
+function settleAPPayment(id) {
+  const data = DB.get('ap-payments');
+  const rec  = data.find(r => r.id === id);
+  if (rec) {
+    rec.status = 'settled';
+    DB.set('ap-payments', data);
+    // Also mark linked invoice as paid
+    if (rec.invref) {
+      const aps = DB.get('ap');
+      const inv = aps.find(a => a.no === rec.invref);
+      if (inv) { inv.status = 'paid'; DB.set('ap', aps); }
+    }
+    renderAPPayments();
+    showToast('Payment settled.');
+  }
+}
+
+/* ── 6. Prepayments ── */
+function renderPrepayments() {
+  const q = ($('appr-q') || {value:''}).value.toLowerCase();
+  const data = DB.get('ap-prepay').filter(r =>
+    !q || r.no.toLowerCase().includes(q) || r.vendor.toLowerCase().includes(q)
+  );
+  $('appr-body').innerHTML = data.length ? data.map(r => {
+    // Balance: full amount if open, zero if fully applied/closed
+    const balance = r.status === 'open' ? Number(r.amount) : (r.status === 'closed' ? 0 : 0);
+    return `
+      <tr>
+        <td><strong>${r.no}</strong></td>
+        <td>${r.vendor}</td>
+        <td>${r.date}</td>
+        <td>${fmt(r.amount)}</td>
+        <td>${r.appliedTo || '—'}</td>
+        <td>${fmt(balance)}</td>
+        <td>${badge(r.status)}</td>
+        <td>
+          <button class="btn-xs btn-edit" onclick="editPrepayment('${r.id}')">Edit</button>
+          <button class="btn-xs btn-del"  onclick="deleteRecord('ap-prepay','${r.id}',renderPrepayments)">Del</button>
+        </td>
+      </tr>
+    `;
+  }).join('') : '<tr class="empty-row"><td colspan="8">No prepayments found.</td></tr>';
+}
+
+function openPrepaymentForm(rec) {
+  $('m-appr-title').textContent = rec ? 'Edit Prepayment' : 'New Prepayment (Uang Muka)';
+  $('appr-no').value      = rec ? rec.no      : '';
+  $('appr-vendor').value  = rec ? rec.vendor  : '';
+  $('appr-date').value    = rec ? rec.date    : today();
+  $('appr-amount').value  = rec ? rec.amount  : '';
+  $('appr-applied').value = rec ? (rec.appliedTo || '') : '';
+  $('appr-status').value  = rec ? rec.status  : 'open';
+  $('appr-notes').value   = rec ? (rec.notes  || '') : '';
+  $('appr-eid').value     = rec ? rec.id      : '';
+  openModal('m-ap-prep');
+}
+
+function savePrepayment() {
+  const no     = $('appr-no').value.trim();
+  const vendor = $('appr-vendor').value.trim();
+  const amount = parseFloat($('appr-amount').value);
+  if (!no || !vendor || isNaN(amount)) { showToast('Prepayment #, vendor and amount are required.', 'error'); return; }
+
+  const rec = {
+    id:        $('appr-eid').value || uid(),
+    no, vendor,
+    date:      $('appr-date').value,
+    amount,
+    appliedTo: $('appr-applied').value.trim(),
+    status:    $('appr-status').value,
+    notes:     $('appr-notes').value.trim(),
+  };
+
+  const data = DB.get('ap-prepay');
+  const idx  = data.findIndex(r => r.id === rec.id);
+  if (idx >= 0) data[idx] = rec; else data.unshift(rec);
+  DB.set('ap-prepay', data);
+  closeModal('m-ap-prep');
+  showToast(idx >= 0 ? 'Prepayment updated.' : 'Prepayment recorded.');
+  renderPrepayments();
+}
+
+function editPrepayment(id) {
+  const rec = DB.get('ap-prepay').find(r => r.id === id);
+  if (rec) openPrepaymentForm(rec);
+}
+
+/* ── 7. Vendor Master ── */
+function renderVendors() {
+  const q  = ($('vnd-q')  || {value:''}).value.toLowerCase();
+  const gf = ($('vnd-gf') || {value:''}).value;
+  const data = DB.get('vendors').filter(r =>
+    (!q  || r.code.toLowerCase().includes(q) || r.name.toLowerCase().includes(q)) &&
+    (!gf || r.group === gf)
+  );
+  $('vnd-body').innerHTML = data.length ? data.map(r => `
+    <tr>
+      <td><strong>${r.code}</strong></td>
+      <td>${r.name}</td>
+      <td>${badge(r.group)}</td>
+      <td>${r.contact || '—'}</td>
+      <td><span style="font-size:.78rem">${r.terms}</span></td>
+      <td>${r.city || '—'}</td>
+      <td>${badge(r.status)}</td>
+      <td>
+        <button class="btn-xs btn-edit" onclick="editVendor('${r.id}')">Edit</button>
+        <button class="btn-xs btn-del"  onclick="deleteRecord('vendors','${r.id}',renderVendors)">Del</button>
+      </td>
+    </tr>
+  `).join('') : '<tr class="empty-row"><td colspan="8">No vendors found.</td></tr>';
+}
+
+function openVendorForm(rec) {
+  $('m-vnd-title').textContent = rec ? 'Edit Vendor' : 'New Vendor';
+  $('vnd-code').value    = rec ? rec.code    : '';
+  $('vnd-name').value    = rec ? rec.name    : '';
+  $('vnd-group').value   = rec ? rec.group   : 'supplier';
+  $('vnd-terms').value   = rec ? rec.terms   : 'NET30';
+  $('vnd-contact').value = rec ? (rec.contact || '') : '';
+  $('vnd-phone').value   = rec ? (rec.phone   || '') : '';
+  $('vnd-email').value   = rec ? (rec.email   || '') : '';
+  $('vnd-taxid').value   = rec ? (rec.taxid   || '') : '';
+  $('vnd-city').value    = rec ? (rec.city    || '') : '';
+  $('vnd-status').value  = rec ? rec.status  : 'active';
+  $('vnd-address').value = rec ? (rec.address || '') : '';
+  $('vnd-eid').value     = rec ? rec.id      : '';
+  openModal('m-vendor');
+}
+
+function saveVendor() {
+  const code = $('vnd-code').value.trim().toUpperCase();
+  const name = $('vnd-name').value.trim();
+  if (!code || !name) { showToast('Vendor Code and Name are required.', 'error'); return; }
+
+  const rec = {
+    id:      $('vnd-eid').value || uid(),
+    code, name,
+    group:   $('vnd-group').value,
+    terms:   $('vnd-terms').value,
+    contact: $('vnd-contact').value.trim(),
+    phone:   $('vnd-phone').value.trim(),
+    email:   $('vnd-email').value.trim(),
+    taxid:   $('vnd-taxid').value.trim(),
+    city:    $('vnd-city').value.trim(),
+    status:  $('vnd-status').value,
+    address: $('vnd-address').value.trim(),
+  };
+
+  const data = DB.get('vendors');
+  const idx  = data.findIndex(r => r.id === rec.id);
+  if (idx >= 0) data[idx] = rec; else data.unshift(rec);
+  DB.set('vendors', data);
+  closeModal('m-vendor');
+  showToast(idx >= 0 ? 'Vendor updated.' : 'Vendor added.');
+  renderVendors();
+}
+
+function editVendor(id) {
+  const rec = DB.get('vendors').find(r => r.id === id);
+  if (rec) openVendorForm(rec);
+}
+
+/* ── 8. Vendor Transactions ── */
+function renderVendorTxns() {
+  const vendorEl = $('aptx-vendor');
+  const typeEl   = $('aptx-type');
+
+  // Populate vendor dropdown
+  const vendors = [...new Set([
+    ...DB.get('ap').map(r => r.vendor),
+    ...DB.get('ap-journal').map(r => r.vendor),
+    ...DB.get('ap-payments').map(r => r.vendor),
+    ...DB.get('ap-prepay').map(r => r.vendor),
+  ])].sort();
+
+  const currentVendor = vendorEl ? vendorEl.value : '';
+  if (vendorEl) {
+    vendorEl.innerHTML = '<option value="">— Select Vendor —</option>'
+      + vendors.map(v => `<option value="${v}" ${v === currentVendor ? 'selected' : ''}>${v}</option>`).join('');
+  }
+
+  const selVendor = (vendorEl || {value:''}).value;
+  const selType   = (typeEl   || {value:''}).value;
+
+  if (!selVendor) {
+    $('aptx-body').innerHTML = '<tr class="empty-row"><td colspan="7">Select a vendor to view transactions.</td></tr>';
+    if ($('aptx-invoiced')) $('aptx-invoiced').textContent = '—';
+    if ($('aptx-paid'))     $('aptx-paid').textContent     = '—';
+    if ($('aptx-balance'))  $('aptx-balance').textContent  = '—';
+    return;
+  }
+
+  const txns = [];
+
+  if (!selType || selType === 'invoice') {
+    DB.get('ap').filter(r => r.vendor === selVendor).forEach(r => {
+      txns.push({ date: r.date, type: 'invoice', ref: r.no, desc: r.desc || 'Vendor Invoice', debit: Number(r.amount), credit: 0 });
+    });
+  }
+  if (!selType || selType === 'payment') {
+    DB.get('ap-payments').filter(r => r.vendor === selVendor).forEach(r => {
+      txns.push({ date: r.date, type: 'payment', ref: r.no, desc: 'Payment – ' + r.method, debit: 0, credit: Number(r.amount) });
+    });
+  }
+  if (!selType || selType === 'prepayment') {
+    DB.get('ap-prepay').filter(r => r.vendor === selVendor).forEach(r => {
+      txns.push({ date: r.date, type: 'prepayment', ref: r.no, desc: 'Prepayment (Uang Muka)', debit: 0, credit: Number(r.amount) });
+    });
+  }
+  if (!selType || selType === 'journal') {
+    DB.get('ap-journal').filter(r => r.vendor === selVendor).forEach(r => {
+      txns.push({ date: r.date, type: 'journal', ref: r.no, desc: r.desc, debit: Number(r.debit), credit: Number(r.credit) });
+    });
+  }
+
+  txns.sort((a, b) => a.date.localeCompare(b.date));
+
+  let balance = 0;
+  let totalInv = 0, totalPaid = 0;
+  const rows = txns.map(t => {
+    balance += t.debit - t.credit;
+    totalInv  += t.debit;
+    totalPaid += t.credit;
+    return `
+      <tr>
+        <td>${t.date}</td>
+        <td>${badge(t.type)}</td>
+        <td>${t.ref}</td>
+        <td>${t.desc}</td>
+        <td>${t.debit  ? fmt(t.debit)  : '—'}</td>
+        <td>${t.credit ? fmt(t.credit) : '—'}</td>
+        <td><strong style="color:${balance > 0 ? 'var(--dan)' : 'var(--suc)'}">${fmt(balance)}</strong></td>
+      </tr>
+    `;
+  });
+
+  if ($('aptx-invoiced')) $('aptx-invoiced').textContent = fmt(totalInv);
+  if ($('aptx-paid'))     $('aptx-paid').textContent     = fmt(totalPaid);
+  if ($('aptx-balance'))  $('aptx-balance').textContent  = fmt(totalInv - totalPaid);
+
+  $('aptx-body').innerHTML = rows.length
+    ? rows.join('')
+    : '<tr class="empty-row"><td colspan="7">No transactions for this vendor.</td></tr>';
+}
+
+
 
 /* ═══════════════════════════════════════════════════════════
    ACCOUNTS RECEIVABLE
