@@ -120,7 +120,7 @@ function launchApp() {
 }
 
 function updateClock() {
-  const now = new Date();
+  const reportDate = new Date();
   $('tb-time').textContent = now.toLocaleString('id-ID', { weekday:'short', day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
 }
 
@@ -1237,12 +1237,12 @@ function genReport(type) {
   const vatOut  = totalAR * (outRate / 100);
   const vatIn   = totalAP * (inpRate / 100);
 
-  const now = new Date().toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
+  const reportDate = new Date().toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric' });
 
   const reports = {
     'pl': `
       <h3>📊 Profit &amp; Loss Statement</h3>
-      <p style="color:var(--muted);margin-bottom:14px">Generated: ${now}</p>
+      <p style="color:var(--muted);margin-bottom:14px">Generated: ${reportDate}</p>
       <table class="tbl"><thead><tr><th>Item</th><th>Amount</th></tr></thead><tbody>
         <tr><td><strong>Total Revenue</strong></td><td>${fmt(revenue)}</td></tr>
         <tr><td><strong>Total Expenses</strong></td><td>${fmt(expense)}</td></tr>
@@ -1251,7 +1251,7 @@ function genReport(type) {
     `,
     'bs': `
       <h3>⚖️ Balance Sheet (Simplified)</h3>
-      <p style="color:var(--muted);margin-bottom:14px">Generated: ${now}</p>
+      <p style="color:var(--muted);margin-bottom:14px">Generated: ${reportDate}</p>
       <table class="tbl"><thead><tr><th>Account</th><th>Amount</th></tr></thead><tbody>
         <tr><td colspan="2"><strong>ASSETS</strong></td></tr>
         <tr><td>Accounts Receivable</td><td>${fmt(totalAR)}</td></tr>
@@ -1264,7 +1264,7 @@ function genReport(type) {
     `,
     'ap-aging': `
       <h3>💸 AP Aging Report</h3>
-      <p style="color:var(--muted);margin-bottom:14px">Generated: ${now}</p>
+      <p style="color:var(--muted);margin-bottom:14px">Generated: ${reportDate}</p>
       <table class="tbl"><thead><tr><th>Invoice #</th><th>Vendor</th><th>Due Date</th><th>Amount</th><th>Status</th></tr></thead><tbody>
         ${ap.map(r => `<tr><td>${r.no}</td><td>${r.vendor}</td><td>${r.due}</td><td>${fmt(r.amount)}</td><td>${badge(r.status)}</td></tr>`).join('')}
         <tr style="background:#f8fafc"><td colspan="3"><strong>Total Payable</strong></td><td><strong>${fmt(ap.filter(r=>r.status!=='paid').reduce((s,r)=>s+Number(r.amount),0))}</strong></td><td></td></tr>
@@ -1272,7 +1272,7 @@ function genReport(type) {
     `,
     'ar-aging': `
       <h3>💰 AR Aging Report</h3>
-      <p style="color:var(--muted);margin-bottom:14px">Generated: ${now}</p>
+      <p style="color:var(--muted);margin-bottom:14px">Generated: ${reportDate}</p>
       <table class="tbl"><thead><tr><th>Invoice #</th><th>Customer</th><th>Due Date</th><th>Amount</th><th>Status</th></tr></thead><tbody>
         ${ar.map(r => `<tr><td>${r.no}</td><td>${r.customer}</td><td>${r.due}</td><td>${fmt(r.amount)}</td><td>${badge(r.status)}</td></tr>`).join('')}
         <tr style="background:#f8fafc"><td colspan="3"><strong>Total Receivable</strong></td><td><strong>${fmt(ar.filter(r=>r.status!=='paid').reduce((s,r)=>s+Number(r.amount),0))}</strong></td><td></td></tr>
@@ -1280,7 +1280,7 @@ function genReport(type) {
     `,
     'inv-val': `
       <h3>🏭 Inventory Valuation</h3>
-      <p style="color:var(--muted);margin-bottom:14px">Generated: ${now}</p>
+      <p style="color:var(--muted);margin-bottom:14px">Generated: ${reportDate}</p>
       <table class="tbl"><thead><tr><th>Code</th><th>Product</th><th>Stock</th><th>Unit Price</th><th>Total Value</th></tr></thead><tbody>
         ${prods.map(p => `<tr><td>${p.code}</td><td>${p.name}</td><td>${p.stock}</td><td>${fmt(p.price)}</td><td><strong>${fmt(Number(p.price)*Number(p.stock))}</strong></td></tr>`).join('')}
         <tr style="background:#f8fafc"><td colspan="4"><strong>Grand Total</strong></td><td><strong>${fmt(invVal)}</strong></td></tr>
@@ -1288,7 +1288,7 @@ function genReport(type) {
     `,
     'tax-sum': `
       <h3>🧾 Tax Summary</h3>
-      <p style="color:var(--muted);margin-bottom:14px">Generated: ${now}</p>
+      <p style="color:var(--muted);margin-bottom:14px">Generated: ${reportDate}</p>
       <table class="tbl"><thead><tr><th>Item</th><th>Amount</th></tr></thead><tbody>
         <tr><td>Total AR (Revenue Base)</td><td>${fmt(totalAR)}</td></tr>
         <tr><td>Output VAT Collected (${outRate}%)</td><td>${fmt(vatOut)}</td></tr>
