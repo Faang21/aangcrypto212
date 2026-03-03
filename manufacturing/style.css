@@ -586,6 +586,87 @@ button:active { opacity: .75; }
 }
 .vnd-ac-new:hover { background: #dbeafe; }
 
+/* ── PO (Procurement) Tabs ────────────────────── */
+.po-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 16px;
+  border-bottom: 2px solid var(--bdr);
+  padding-bottom: 0;
+}
+.po-tab {
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  padding: 8px 13px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  margin-bottom: -2px;
+  border-radius: 6px 6px 0 0;
+  transition: color .15s, border-color .15s, background .15s;
+  white-space: nowrap;
+}
+.po-tab:hover  { color: var(--pri); background: #eff6ff; }
+.po-tab.active { color: var(--pri); border-bottom-color: var(--pri); background: #eff6ff; }
+.po-pane.hidden { display: none; }
+
+/* ── PO Wide Modal ────────────────────────────── */
+.modal-box.wide {
+  min-width: min(92vw, 920px);
+  max-width: 96vw;
+}
+
+/* ── PO Form Sections ─────────────────────────── */
+.po-section-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  color: var(--muted);
+  border-bottom: 1.5px solid var(--bdr);
+  padding-bottom: 6px;
+  margin: 14px 0 10px;
+}
+
+/* ── PO Line Toolbar ──────────────────────────── */
+.po-line-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+/* ── PO Inline Inputs ─────────────────────────── */
+.po-line-inp {
+  border: 1px solid var(--bdr);
+  border-radius: 6px;
+  padding: 4px 6px;
+  font-size: 0.8rem;
+  font-family: var(--font);
+  color: var(--txt);
+  outline: none;
+  transition: border-color .15s;
+  background: #fff;
+}
+.po-line-inp:focus { border-color: var(--pri); }
+
+/* ── PO Checkbox Row ──────────────────────────── */
+.po-check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  font-size: 0.87rem;
+}
+.po-check-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
 /* ── Helpers ──────────────────────────────────── */
 .hidden { display: none !important; }
 
