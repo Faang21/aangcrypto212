@@ -116,6 +116,7 @@ function launchApp() {
   updateClock();
   setInterval(updateClock, 1000);
   seedDemoData();
+  initVendorAutocompletes();
   switchModule('dashboard');
 }
 
@@ -918,6 +919,8 @@ function openVendorForm(rec) {
   $('vnd-phone').value   = rec ? (rec.phone   || '') : '';
   $('vnd-email').value   = rec ? (rec.email   || '') : '';
   $('vnd-taxid').value   = rec ? (rec.taxid   || '') : '';
+  $('vnd-vat').value     = rec ? (rec.vat   ?? '') : '';
+  $('vnd-pph23').value   = rec ? (rec.pph23 ?? '') : '';
   $('vnd-city').value    = rec ? (rec.city    || '') : '';
   $('vnd-status').value  = rec ? rec.status  : 'active';
   $('vnd-address').value = rec ? (rec.address || '') : '';
@@ -939,6 +942,8 @@ function saveVendor() {
     phone:   $('vnd-phone').value.trim(),
     email:   $('vnd-email').value.trim(),
     taxid:   $('vnd-taxid').value.trim(),
+    vat:     $('vnd-vat').value     !== '' ? parseFloat($('vnd-vat').value)     : null,
+    pph23:   $('vnd-pph23').value   !== '' ? parseFloat($('vnd-pph23').value)   : null,
     city:    $('vnd-city').value.trim(),
     status:  $('vnd-status').value,
     address: $('vnd-address').value.trim(),
@@ -956,6 +961,70 @@ function saveVendor() {
 function editVendor(id) {
   const rec = DB.get('vendors').find(r => r.id === id);
   if (rec) openVendorForm(rec);
+}
+
+/* ── Vendor Autocomplete ── */
+function setupVendorAutocomplete(inputId) {
+  const inp = $(inputId);
+  if (!inp) return;
+  const wrap = inp.parentElement;
+
+  function getDropdown() {
+    let dd = wrap.querySelector('.vnd-ac-dropdown');
+    if (!dd) {
+      dd = document.createElement('ul');
+      dd.className = 'vnd-ac-dropdown';
+      wrap.appendChild(dd);
+    }
+    return dd;
+  }
+
+  function closeDropdown() {
+    const dd = wrap.querySelector('.vnd-ac-dropdown');
+    if (dd) dd.remove();
+  }
+
+  inp.addEventListener('input', () => {
+    const q = inp.value.trim().toLowerCase();
+    const vendors = DB.get('vendors');
+    const matches = q
+      ? vendors.filter(v => v.name.toLowerCase().includes(q) || v.code.toLowerCase().includes(q))
+      : vendors;
+
+    if (!matches.length && !q) { closeDropdown(); return; }
+
+    const dd = getDropdown();
+    dd.innerHTML = '';
+
+    matches.slice(0, 8).forEach(v => {
+      const li = document.createElement('li');
+      li.className = 'vnd-ac-item';
+      li.textContent = v.name + ' (' + v.code + ')';
+      li.addEventListener('mousedown', e => {
+        e.preventDefault();
+        inp.value = v.name;
+        closeDropdown();
+      });
+      dd.appendChild(li);
+    });
+
+    const liNew = document.createElement('li');
+    liNew.className = 'vnd-ac-item vnd-ac-new';
+    liNew.textContent = '+ Buat Vendor Baru';
+    liNew.addEventListener('mousedown', e => {
+      e.preventDefault();
+      closeDropdown();
+      openVendorForm(null);
+    });
+    dd.appendChild(liNew);
+  });
+
+  inp.addEventListener('focus', () => inp.dispatchEvent(new Event('input')));
+  inp.addEventListener('blur', () => setTimeout(closeDropdown, 150));
+}
+
+function initVendorAutocompletes() {
+  ['ap-vendor', 'apj-vendor', 'appm-vendor', 'appr-vendor', 'po-vendor'].forEach(setupVendorAutocomplete);
 }
 
 /* ── 8. Vendor Transactions ── */
