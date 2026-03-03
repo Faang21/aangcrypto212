@@ -121,7 +121,7 @@ function launchApp() {
 }
 
 function updateClock() {
-  const reportDate = new Date();
+  const now = new Date();
   $('tb-time').textContent = now.toLocaleString('id-ID', { weekday:'short', day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
 }
 
@@ -245,9 +245,12 @@ function seedDemoData() {
   ]);
 
   DB.set('po', [
-    { id: uid(), no: 'PO-2024-001', vendor: 'PT. Bahan Baku Nusantara', date: '2024-01-03', items: '500 kg Aluminium Sheet',   total: 15000000, status: 'received',  notes: 'Urgent order' },
-    { id: uid(), no: 'PO-2024-002', vendor: 'CV. Suku Cadang Jaya',     date: '2024-02-08', items: '10 pcs Bearing Set',       total:  8500000, status: 'approved',  notes: '' },
-    { id: uid(), no: 'PO-2024-003', vendor: 'PT. Kemasan Mandiri',      date: '2024-02-20', items: '1000 pcs Packaging Box',   total:  2300000, status: 'draft',     notes: 'Monthly packaging' },
+    { id: uid(), no: 'PO-2024-001', vendorCode: 'VND-001', vendor: 'PT. Bahan Baku Nusantara', date: '2024-01-03', status: 'received', isPph: true,  recommended: 'PT. Bahan Baku Nusantara', notes: 'Urgent order',
+      lines: [{ id: uid(), partCode: 'PRD-001', partName: 'Aluminium Sheet 2mm',  partDesc: 'Bahan baku lembaran aluminium 2mm', qty: 500, unit: 'kg',  unitStore: 'kg',  price: 30000,  total: 15000000 }], total: 15000000 },
+    { id: uid(), no: 'PO-2024-002', vendorCode: 'VND-002', vendor: 'CV. Suku Cadang Jaya',     date: '2024-02-08', status: 'approved', isPph: false, recommended: '',                          notes: '',
+      lines: [{ id: uid(), partCode: 'PRD-002', partName: 'Bearing Set SKF-6205', partDesc: 'Spare part bearing untuk mesin produksi', qty: 10,  unit: 'pcs', unitStore: 'pcs', price: 850000, total: 8500000  }], total: 8500000  },
+    { id: uid(), no: 'PO-2024-003', vendorCode: 'VND-004', vendor: 'PT. Kemasan Mandiri',      date: '2024-02-20', status: 'draft',    isPph: false, recommended: 'PT. Kemasan Mandiri',      notes: 'Monthly packaging',
+      lines: [{ id: uid(), partCode: 'PRD-005', partName: 'Packaging Box Medium',  partDesc: 'Kotak kemasan ukuran sedang',             qty: 1000, unit: 'pcs', unitStore: 'pcs', price: 2300,  total: 2300000  }], total: 2300000  },
   ]);
 
   DB.set('recv', [
@@ -1024,7 +1027,7 @@ function setupVendorAutocomplete(inputId) {
 }
 
 function initVendorAutocompletes() {
-  ['ap-vendor', 'apj-vendor', 'appm-vendor', 'appr-vendor', 'po-vendor'].forEach(setupVendorAutocomplete);
+  ['ap-vendor', 'apj-vendor', 'appm-vendor', 'appr-vendor'].forEach(setupVendorAutocomplete);
 }
 
 /* ── 8. Vendor Transactions ── */
@@ -1396,56 +1399,272 @@ function editFin(id) {
 /* ═══════════════════════════════════════════════════════════
    PROCUREMENT
 ═══════════════════════════════════════════════════════════ */
+
+let _poTab   = 'purchase-order';
+let _poLines = [];
+const PPH23_RATE = 0.02; /* PPh Pasal 23 rate 2% */
+
+/* ── Sub-tab routing ── */
+function poNewRecord() {
+  const actions = {
+    'purchase-order': () => openPOForm(null),
+    'purchase':       () => openPOForm(null),
+    'manage':         () => openPOForm(null),
+    'receive':        () => openModal('m-recv'),
+    'invoice':        () => openAPForm(null),
+    'warehouse':      () => openModal('m-inv'),
+    'general':        () => {},
+  };
+  if (actions[_poTab]) actions[_poTab]();
+}
+
+function switchPOTab(tab) {
+  _poTab = tab;
+  document.querySelectorAll('.po-tab').forEach(b => {
+    b.classList.toggle('active', b.dataset.potab === tab);
+  });
+  document.querySelectorAll('.po-pane').forEach(p => p.classList.add('hidden'));
+  const pane = $('po-pane-' + tab);
+  if (pane) pane.classList.remove('hidden');
+
+  const renders = {
+    'purchase-order': renderPOList,
+    'purchase':       renderPOPurchase,
+    'manage':         renderPOManage,
+    'receive':        renderPOReceive,
+    'invoice':        renderPOInvoice,
+    'warehouse':      renderPOWarehouse,
+    'general':        renderPOGeneral,
+  };
+  if (renders[tab]) renders[tab]();
+}
+
 function renderPO() {
+  document.querySelectorAll('.po-tab').forEach(b => {
+    b.classList.toggle('active', b.dataset.potab === _poTab);
+  });
+  switchPOTab(_poTab);
+}
+
+/* ── 1. Purchase Order list ── */
+function renderPOList() {
   const q  = ($('po-q')  || {value:''}).value.toLowerCase();
   const sf = ($('po-sf') || {value:''}).value;
   const data = DB.get('po').filter(r =>
-    (!q  || r.no.toLowerCase().includes(q) || r.vendor.toLowerCase().includes(q)) &&
+    (!q  || r.no.toLowerCase().includes(q) || r.vendor.toLowerCase().includes(q) || (r.vendorCode || '').toLowerCase().includes(q)) &&
     (!sf || r.status === sf)
   );
   $('po-body').innerHTML = data.length ? data.map(r => `
     <tr>
-      <td>${r.no}</td>
+      <td><strong>${r.no}</strong></td>
+      <td>${r.vendorCode ? `<strong>${r.vendorCode}</strong>` : '<span style="color:var(--muted)">—</span>'}</td>
       <td>${r.vendor}</td>
       <td>${r.date}</td>
-      <td>${r.items}</td>
+      <td>${r.lines ? r.lines.length : 0} line(s)</td>
       <td>${fmt(r.total)}</td>
+      <td>${r.isPph ? '<span class="badge b-withholding">PPh</span>' : '<span style="color:var(--muted)">—</span>'}</td>
       <td>${badge(r.status)}</td>
       <td>
         <button class="btn-xs btn-edit" onclick="editPO('${r.id}')">Edit</button>
-        <button class="btn-xs btn-del"  onclick="deleteRecord('po','${r.id}',renderPO)">Del</button>
+        <button class="btn-xs btn-del"  onclick="deleteRecord('po','${r.id}',renderPOList)">Del</button>
+      </td>
+    </tr>
+  `).join('') : '<tr class="empty-row"><td colspan="9">No purchase orders found.</td></tr>';
+}
+
+/* ── 2. Purchase summary ── */
+function renderPOPurchase() {
+  const pos   = DB.get('po');
+  const total = pos.reduce((s, r) => s + Number(r.total || 0), 0);
+  const byStatus = {};
+  pos.forEach(r => { byStatus[r.status] = (byStatus[r.status] || 0) + 1; });
+  $('po-purchase-body').innerHTML = `
+    <div class="stat-row" style="margin-bottom:16px">
+      <div class="stat-card blue"><div class="sv">${pos.length}</div><div class="sl">Total POs</div></div>
+      <div class="stat-card green"><div class="sv">${fmt(total)}</div><div class="sl">Total Nilai Pembelian</div></div>
+      <div class="stat-card orange"><div class="sv">${byStatus.draft || 0}</div><div class="sl">Draft</div></div>
+      <div class="stat-card blue"><div class="sv">${byStatus.approved || 0}</div><div class="sl">Approved</div></div>
+    </div>
+    <table class="tbl">
+      <thead><tr><th>PO #</th><th>Kode Vendor</th><th>Supplier</th><th>Tanggal</th><th>Lines</th><th>Total</th><th>Status</th></tr></thead>
+      <tbody>${pos.length ? pos.map(r => `
+        <tr>
+          <td><strong>${r.no}</strong></td>
+          <td>${r.vendorCode || '—'}</td>
+          <td>${r.vendor}</td>
+          <td>${r.date}</td>
+          <td>${r.lines ? r.lines.length : 0}</td>
+          <td>${fmt(r.total)}</td>
+          <td>${badge(r.status)}</td>
+        </tr>
+      `).join('') : '<tr class="empty-row"><td colspan="7">No purchase orders.</td></tr>'}</tbody>
+    </table>
+  `;
+}
+
+/* ── 3. Manage / Approval ── */
+function renderPOManage() {
+  const sf  = ($('po-manage-sf') || {value:''}).value;
+  const pos = DB.get('po').filter(r => !sf || r.status === sf);
+  $('po-manage-body').innerHTML = pos.length ? pos.map(r => `
+    <tr>
+      <td><strong>${r.no}</strong></td>
+      <td>${r.vendorCode || '—'}</td>
+      <td>${r.vendor}</td>
+      <td>${r.date}</td>
+      <td>${fmt(r.total)}</td>
+      <td>${badge(r.status)}</td>
+      <td>
+        ${r.status === 'draft'    ? `<button class="btn-xs btn-pay"  onclick="approvePO('${r.id}')">Approve</button>` : ''}
+        ${r.status === 'approved' ? `<button class="btn-xs btn-edit" onclick="receivePO('${r.id}')">Mark Received</button>` : ''}
+        ${r.status !== 'received' && r.status !== 'cancelled' ? `<button class="btn-xs btn-del" onclick="cancelPO('${r.id}')">Cancel</button>` : ''}
       </td>
     </tr>
   `).join('') : '<tr class="empty-row"><td colspan="7">No purchase orders found.</td></tr>';
 }
 
+function approvePO(id) {
+  const data = DB.get('po');
+  const po = data.find(r => r.id === id);
+  if (po) { po.status = 'approved'; DB.set('po', data); showToast('PO approved.'); renderPOManage(); }
+}
+
+function receivePO(id) {
+  const data = DB.get('po');
+  const po = data.find(r => r.id === id);
+  if (po) { po.status = 'received'; DB.set('po', data); showToast('PO marked as received.'); renderPOManage(); }
+}
+
+function cancelPO(id) {
+  const data = DB.get('po');
+  const po = data.find(r => r.id === id);
+  if (po && (po.status === 'received' || po.status === 'cancelled')) {
+    showToast('Cannot cancel a received or already-cancelled PO.', 'error');
+    return;
+  }
+  if (po) { po.status = 'cancelled'; DB.set('po', data); showToast('PO cancelled.'); renderPOManage(); }
+}
+
+/* ── 4. Receive (GR from POs) ── */
+function renderPOReceive() {
+  const recvs = DB.get('recv');
+  $('po-recv-body').innerHTML = recvs.length ? recvs.map(r => `
+    <tr>
+      <td>${r.no}</td>
+      <td>${r.po}</td>
+      <td>${r.vendor}</td>
+      <td>${r.date}</td>
+      <td>${r.items}</td>
+      <td>${badge(r.status)}</td>
+      <td>
+        <button class="btn-xs btn-edit" onclick="editRecv('${r.id}')">Edit</button>
+        <button class="btn-xs btn-del"  onclick="deleteRecord('recv','${r.id}',renderPOReceive)">Del</button>
+      </td>
+    </tr>
+  `).join('') : '<tr class="empty-row"><td colspan="7">No receipts found.</td></tr>';
+}
+
+/* ── 5. Invoice (AP invoices with PO ref) ── */
+function renderPOInvoice() {
+  const invs = DB.get('ap').filter(r => r.poref);
+  $('po-inv-body').innerHTML = invs.length ? invs.map(r => `
+    <tr>
+      <td>${r.no}</td>
+      <td>${r.vendor}</td>
+      <td>${r.date}</td>
+      <td>${fmt(r.amount)}</td>
+      <td>${r.poref}</td>
+      <td>${badge(r.status)}</td>
+      <td>
+        <button class="btn-xs btn-edit" onclick="editAP('${r.id}')">View</button>
+      </td>
+    </tr>
+  `).join('') : '<tr class="empty-row"><td colspan="7">No vendor invoices linked to POs.</td></tr>';
+}
+
+/* ── 6. Warehouse Management ── */
+function renderPOWarehouse() {
+  const movs = DB.get('inv').filter(r => r.ref && r.ref.startsWith('GR-'));
+  $('po-wh-body').innerHTML = movs.length ? movs.map(r => `
+    <tr>
+      <td>${r.date}</td>
+      <td>${r.ref}</td>
+      <td>${r.product}</td>
+      <td>${r.qty}</td>
+      <td>${r.wh}</td>
+      <td>${badge(r.type)}</td>
+    </tr>
+  `).join('') : '<tr class="empty-row"><td colspan="6">No warehouse movements from POs.</td></tr>';
+}
+
+/* ── 7. General ── */
+function renderPOGeneral() {
+  const vendors = DB.get('vendors');
+  const pos     = DB.get('po');
+  const total   = pos.reduce((s, r) => s + Number(r.total || 0), 0);
+  $('po-general-body').innerHTML = `
+    <div class="stat-card blue"><div class="sv">${vendors.length}</div><div class="sl">Vendor Terdaftar (AP)</div></div>
+    <div class="stat-card green"><div class="sv">${pos.length}</div><div class="sl">Total Purchase Orders</div></div>
+    <div class="stat-card orange"><div class="sv">${pos.filter(r=>r.status==='approved').length}</div><div class="sl">PO Approved</div></div>
+    <div class="stat-card blue"><div class="sv">${pos.filter(r=>r.status==='received').length}</div><div class="sl">PO Received</div></div>
+    <div class="stat-card green"><div class="sv">${fmt(total)}</div><div class="sl">Total Nilai PO</div></div>
+    <div class="stat-card orange"><div class="sv">${pos.filter(r=>r.isPph).length}</div><div class="sl">PO Kena PPh</div></div>
+  `;
+}
+
+/* ── PO Form (Header + Lines) ── */
+function populatePOVendorDropdown() {
+  const sel = $('po-vendor-code');
+  if (!sel) return;
+  const cur     = sel.value;
+  const vendors = DB.get('vendors').filter(v => v.status === 'active');
+  sel.innerHTML = '<option value="">— Pilih Kode Vendor —</option>'
+    + vendors.map(v => `<option value="${v.code}" ${v.code === cur ? 'selected' : ''}>${v.code} – ${v.name}</option>`).join('');
+}
+
+function poVendorCodeChange() {
+  const code    = $('po-vendor-code').value;
+  const vendors = DB.get('vendors');
+  const vnd     = vendors.find(v => v.code === code);
+  $('po-vendor').value = vnd ? vnd.name : '';
+}
+
 function openPOForm(rec) {
-  $('m-po-title').textContent = rec ? 'Edit Purchase Order' : 'New Purchase Order';
-  $('po-no').value     = rec ? rec.no     : '';
-  $('po-vendor').value = rec ? rec.vendor : '';
-  $('po-date').value   = rec ? rec.date   : today();
-  $('po-status').value = rec ? rec.status : 'draft';
-  $('po-items').value  = rec ? rec.items  : '';
-  $('po-total').value  = rec ? rec.total  : '';
-  $('po-notes').value  = rec ? rec.notes  : '';
-  $('po-eid').value    = rec ? rec.id     : '';
+  populatePOVendorDropdown();
+  $('m-po-title').textContent     = rec ? 'Edit Purchase Order' : 'New Purchase Order';
+  $('po-no').value                = rec ? rec.no                    : '';
+  $('po-vendor-code').value       = rec ? (rec.vendorCode || '')    : '';
+  $('po-vendor').value            = rec ? rec.vendor                : '';
+  $('po-date').value              = rec ? rec.date                  : today();
+  $('po-status').value            = rec ? rec.status                : 'draft';
+  $('po-ispph').checked           = rec ? (rec.isPph || false)      : false;
+  $('po-recommended').value       = rec ? (rec.recommended || '')   : '';
+  $('po-notes').value             = rec ? (rec.notes || '')         : '';
+  $('po-eid').value               = rec ? rec.id                    : '';
+  _poLines = rec && rec.lines ? JSON.parse(JSON.stringify(rec.lines)) : [];
+  renderPOLines();
   openModal('m-po');
 }
 
 function savePO() {
   const no     = $('po-no').value.trim();
   const vendor = $('po-vendor').value.trim();
-  const total  = parseFloat($('po-total').value);
-  if (!no || !vendor || isNaN(total)) { showToast('PO #, vendor and total are required.', 'error'); return; }
+  if (!no || !vendor) { showToast('PO # dan vendor harus diisi.', 'error'); return; }
+
+  const total = _poLines.reduce((s, ln) => s + (Number(ln.total) || 0), 0);
 
   const rec = {
-    id:     $('po-eid').value || uid(),
+    id:          $('po-eid').value || uid(),
     no, vendor,
-    date:   $('po-date').value,
-    status: $('po-status').value,
-    items:  $('po-items').value.trim(),
+    vendorCode:  $('po-vendor-code').value,
+    date:        $('po-date').value,
+    status:      $('po-status').value,
+    isPph:       $('po-ispph').checked,
+    recommended: $('po-recommended').value.trim(),
+    lines:       JSON.parse(JSON.stringify(_poLines)),
+    items:       _poLines.map(ln => ln.partName).filter(Boolean).join(', ') || '—',
     total,
-    notes:  $('po-notes').value.trim(),
+    notes:       $('po-notes').value.trim(),
   };
 
   const data = DB.get('po');
@@ -1454,12 +1673,146 @@ function savePO() {
   DB.set('po', data);
   closeModal('m-po');
   showToast(idx >= 0 ? 'PO updated.' : 'PO added.');
-  renderPO();
+  renderPOList();
 }
 
 function editPO(id) {
   const rec = DB.get('po').find(r => r.id === id);
   if (rec) openPOForm(rec);
+}
+
+/* ── PO Line Management ── */
+function renderPOLines() {
+  const tbody = $('po-lines-body');
+  if (!tbody) return;
+
+  if (_poLines.length === 0) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="10">Belum ada line item. Klik "+ Add Line" untuk menambah.</td></tr>';
+    const gt = $('po-grand-total');
+    if (gt) gt.textContent = 'Rp 0';
+    return;
+  }
+
+  tbody.innerHTML = _poLines.map((ln, idx) => `
+    <tr>
+      <td style="text-align:center;color:var(--muted);font-size:0.75rem">${idx + 1}</td>
+      <td><input class="po-line-inp" type="text"   maxlength="30"  style="width:84px"  value="${escHtml(ln.partCode  || '')}" onchange="_poLines[${idx}].partCode  = this.value.slice(0,30)" /></td>
+      <td><input class="po-line-inp" type="text"   maxlength="100" style="width:134px" value="${escHtml(ln.partName  || '')}" onchange="_poLines[${idx}].partName  = this.value.slice(0,100)" /></td>
+      <td><input class="po-line-inp" type="text"   maxlength="200" style="width:154px" value="${escHtml(ln.partDesc  || '')}" onchange="_poLines[${idx}].partDesc  = this.value.slice(0,200)" /></td>
+      <td><input class="po-line-inp" type="number" style="width:62px"  value="${ln.qty   || 0}"  min="0" max="999999" onchange="_poLines[${idx}].qty   = parseFloat(this.value)||0; calcPOLineTotal(${idx})" /></td>
+      <td><input class="po-line-inp" type="text"   maxlength="20"  style="width:68px"  value="${escHtml(ln.unit      || '')}" onchange="_poLines[${idx}].unit      = this.value.slice(0,20)" /></td>
+      <td><input class="po-line-inp" type="text"   maxlength="20"  style="width:80px"  value="${escHtml(ln.unitStore || '')}" onchange="_poLines[${idx}].unitStore = this.value.slice(0,20)" /></td>
+      <td><input class="po-line-inp" type="number" style="width:104px" value="${ln.price || 0}" min="0" max="999999999999" step="100" onchange="_poLines[${idx}].price = parseFloat(this.value)||0; calcPOLineTotal(${idx})" /></td>
+      <td id="po-line-total-${idx}" style="font-weight:600;color:var(--pri)">${fmt(ln.total || 0)}</td>
+      <td><button class="btn-xs btn-del" style="padding:2px 7px" onclick="removePOLine(${idx})">×</button></td>
+    </tr>
+  `).join('');
+
+  updatePOGrandTotal();
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function updatePOGrandTotal() {
+  const gt = $('po-grand-total');
+  if (gt) gt.textContent = fmt(_poLines.reduce((s, ln) => s + (Number(ln.total) || 0), 0));
+}
+
+function calcPOLineTotal(idx) {
+  const ln = _poLines[idx];
+  ln.total = (Number(ln.qty) || 0) * (Number(ln.price) || 0);
+  const cell = $('po-line-total-' + idx);
+  if (cell) cell.textContent = fmt(ln.total);
+  updatePOGrandTotal();
+}
+
+function addPOLine() {
+  _poLines.push({ partCode: '', partName: '', partDesc: '', qty: 1, unit: '', unitStore: '', price: 0, total: 0 });
+  renderPOLines();
+}
+
+function removePOLine(idx) {
+  _poLines.splice(idx, 1);
+  renderPOLines();
+}
+
+function recalcPOLines() {
+  _poLines.forEach((ln, idx) => { ln.total = (Number(ln.qty) || 0) * (Number(ln.price) || 0); });
+  renderPOLines();
+  showToast('Line totals updated.');
+}
+
+/* ── PO Financial / Inventory / Product Supply helpers ── */
+function showPOFinancial() {
+  const total  = _poLines.reduce((s, ln) => s + (Number(ln.total) || 0), 0);
+  const isPph  = $('po-ispph') ? $('po-ispph').checked : false;
+  const pphAmt = isPph ? Math.round(total * PPH23_RATE) : 0;
+  showToast(`Total: ${fmt(total)} | PPh 23 (${PPH23_RATE * 100}%): ${fmt(pphAmt)} | Net: ${fmt(total - pphAmt)}`);
+}
+
+function showPOInventory() {
+  const codes = _poLines.map(ln => ln.partCode).filter(Boolean);
+  if (!codes.length) { showToast('Tambahkan line items terlebih dahulu.', 'error'); return; }
+  const prods = DB.get('products');
+  const msgs  = codes.map(c => {
+    const p = prods.find(pr => pr.code === c);
+    return p ? `${p.code}: stok ${p.stock} ${p.unit}` : `${c}: tidak ditemukan`;
+  });
+  showToast('Stok: ' + msgs.join(' | '));
+}
+
+function showPOProductSupply() {
+  const vndCode = $('po-vendor-code').value;
+  const vnd     = DB.get('vendors').find(v => v.code === vndCode);
+  if (!vnd) { showToast('Pilih vendor terlebih dahulu.', 'error'); return; }
+  showToast(`Vendor: ${vnd.name} | Kontak: ${vnd.contact || '—'} | Terms: ${vnd.terms}`);
+}
+
+/* ── Product Picker for PO Lines ── */
+function openProductPickerForPO() {
+  const prods = DB.get('products');
+  renderPOProdPicker(prods);
+  if ($('po-picker-q')) $('po-picker-q').value = '';
+  openModal('m-po-prod-picker');
+}
+
+function filterPOProdPicker() {
+  const q     = ($('po-picker-q') || {value:''}).value.toLowerCase();
+  const prods = DB.get('products').filter(p =>
+    !q || p.code.toLowerCase().includes(q) || p.name.toLowerCase().includes(q)
+  );
+  renderPOProdPicker(prods);
+}
+
+function renderPOProdPicker(prods) {
+  $('po-prod-picker-body').innerHTML = prods.length ? prods.map(p => `
+    <tr>
+      <td><strong>${p.code}</strong></td>
+      <td>${p.name}</td>
+      <td>${p.unit}</td>
+      <td>${fmt(p.price)}</td>
+      <td><button class="btn-xs btn-primary" onclick="addLineFromProduct('${p.id}')">+ Add</button></td>
+    </tr>
+  `).join('') : '<tr class="empty-row"><td colspan="5">No products found.</td></tr>';
+}
+
+function addLineFromProduct(prodId) {
+  const prod = DB.get('products').find(p => p.id === prodId);
+  if (!prod) return;
+  _poLines.push({
+    partCode:  prod.code,
+    partName:  prod.name,
+    partDesc:  prod.name,
+    qty:       1,
+    unit:      prod.unit,
+    unitStore: prod.unit,
+    price:     Number(prod.price),
+    total:     Number(prod.price),
+  });
+  renderPOLines();
+  showToast(`Added: ${prod.name}`);
 }
 
 /* ═══════════════════════════════════════════════════════════
