@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AangERP – Manufacturing System</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     LOGIN SCREEN
+══════════════════════════════════════════ -->
+<div id="login-screen" class="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">⚙️</div>
+      <h1>AangERP</h1>
+      <p class="auth-sub">Manufacturing &amp; Enterprise Resource Planning</p>
+    </div>
+    <div class="auth-form" id="login-form">
+      <label for="login-code">User Code</label>
+      <input id="login-code" type="text" placeholder="Enter your user code…" maxlength="20" autocomplete="off" />
+      <div id="login-error" class="auth-error hidden"></div>
+      <button id="btn-login" class="btn-primary full-w">Login</button>
+      <p class="auth-link">New user? <a id="go-register" href="#">Register here</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     REGISTER SCREEN
+══════════════════════════════════════════ -->
+<div id="register-screen" class="auth-screen hidden">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">⚙️</div>
+      <h1>AangERP</h1>
+      <p class="auth-sub">Create New Account</p>
+    </div>
+    <div class="auth-form">
+      <label for="reg-name">Full Name</label>
+      <input id="reg-name" type="text" placeholder="Your full name" maxlength="60" />
+      <label for="reg-code">User Code</label>
+      <input id="reg-code" type="text" placeholder="Choose a unique code e.g. EMP001" maxlength="20" autocomplete="off" />
+      <label for="reg-role">Role / Division</label>
+      <select id="reg-role">
+        <option value="admin">Administrator</option>
+        <option value="finance">Finance</option>
+        <option value="accounting">Accounting</option>
+        <option value="marketing">Marketing</option>
+        <option value="procurement">Procurement</option>
+        <option value="warehouse">Warehouse</option>
+        <option value="hr">Human Resources</option>
+        <option value="sales">Sales</option>
+        <option value="it">IT</option>
+      </select>
+      <div id="reg-error" class="auth-error hidden"></div>
+      <button id="btn-register" class="btn-primary full-w">Create Account</button>
+      <p class="auth-link"><a id="go-login" href="#">← Back to Login</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MAIN APP
+══════════════════════════════════════════ -->
+<div id="app-screen" class="hidden">
+
+  <!-- Sidebar -->
+  <nav id="sidebar">
+    <div id="sidebar-logo">
+      <span class="sl-icon">⚙️</span>
+      <span class="sl-brand">AangERP</span>
+    </div>
+
+    <ul id="nav-list">
+      <li class="nav-item active" data-mod="dashboard">
+        <span class="ni">🏠</span><span>Dashboard</span>
+      </li>
+
+      <li class="nav-section">ACCOUNTING</li>
+      <li class="nav-item" data-mod="ap">
+        <span class="ni">💸</span><span>Accounts Payable</span>
+      </li>
+      <li class="nav-item" data-mod="ar">
+        <span class="ni">💰</span><span>Accounts Receivable</span>
+      </li>
+      <li class="nav-item" data-mod="gl">
+        <span class="ni">📒</span><span>General Ledger</span>
+      </li>
+      <li class="nav-item" data-mod="tax">
+        <span class="ni">🧾</span><span>Tax</span>
+      </li>
+
+      <li class="nav-section">FINANCE</li>
+      <li class="nav-item" data-mod="finance">
+        <span class="ni">📊</span><span>Finance</span>
+      </li>
+
+      <li class="nav-section">OPERATIONS</li>
+      <li class="nav-item" data-mod="procurement">
+        <span class="ni">🛒</span><span>Procurement</span>
+      </li>
+      <li class="nav-item" data-mod="receiving">
+        <span class="ni">📦</span><span>Receiving</span>
+      </li>
+      <li class="nav-item" data-mod="delivery">
+        <span class="ni">🚚</span><span>Delivery</span>
+      </li>
+
+      <li class="nav-section">INVENTORY</li>
+      <li class="nav-item" data-mod="products">
+        <span class="ni">🏷️</span><span>Product Inventory</span>
+      </li>
+      <li class="nav-item" data-mod="inventory">
+        <span class="ni">🏭</span><span>Inventory Management</span>
+      </li>
+
+      <li class="nav-section">COMMERCIAL</li>
+      <li class="nav-item" data-mod="marketing">
+        <span class="ni">📣</span><span>Marketing</span>
+      </li>
+
+      <li class="nav-section">ORGANIZATION</li>
+      <li class="nav-item" data-mod="hr">
+        <span class="ni">👥</span><span>Human Resources</span>
+      </li>
+      <li class="nav-item" data-mod="reports">
+        <span class="ni">📈</span><span>Reports</span>
+      </li>
+    </ul>
+
+    <div id="sidebar-user">
+      <div id="su-name">—</div>
+      <div id="su-role">—</div>
+      <button id="btn-logout">Logout</button>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <div id="main-wrap">
+    <header id="topbar">
+      <span id="breadcrumb">Dashboard</span>
+      <div id="tb-right">
+        <span id="tb-time"></span>
+        <span id="tb-user"></span>
+      </div>
+    </header>
+
+    <main id="content">
+
+      <!-- ── DASHBOARD ── -->
+      <section id="mod-dashboard" class="panel active">
+        <div class="panel-hdr">
+          <h2>🏠 Dashboard</h2>
+          <span id="dash-date" class="muted-sm"></span>
+        </div>
+        <div id="kpi-row"></div>
+        <div class="dash-grid">
+          <div class="card">
+            <h3>Recent Transactions</h3>
+            <table class="tbl">
+              <thead><tr><th>Date</th><th>Module</th><th>Description</th><th>Amount</th><th>Status</th></tr></thead>
+              <tbody id="dash-recent"></tbody>
+            </table>
+          </div>
+          <div class="card">
+            <h3>Module Summary</h3>
+            <div id="dash-summary"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── ACCOUNTS PAYABLE ── -->
+      <section id="mod-ap" class="panel hidden">
+        <div class="panel-hdr">
+          <h2>💸 Accounts Payable</h2>
+          <button class="btn-primary" onclick="openModal('m-ap')">+ New Invoice</button>
+        </div>
+        <div class="filter-bar">
+          <input type="text" id="ap-q" placeholder="Search vendor / invoice…" oninput="renderAP()" />
+          <select id="ap-sf" onchange="renderAP()">
+            <option value="">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="paid">Paid</option>
+            <option value="overdue">Overdue</option>
+          </select>
+        </div>
+        <div class="card">
+          <table class="tbl">
+            <thead><tr><th>Invoice #</th><th>Vendor</th><th>Date</th><th>Amount</th><th>Due Date</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="ap-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── ACCOUNTS RECEIVABLE ── -->
+      <section id="mod-ar" class="panel hidden">
+        <div class="panel-hdr">
+          <h2>💰 Accounts Receivable</h2>
+          <button class="btn-primary" onclick="openModal('m-ar')">+ New Invoice</button>
+        </div>
+        <div class="filter-bar">
+          <input type="text" id="ar-q" placeholder="Search customer / invoice…" oninput="renderAR()" />
+          <select id="ar-sf" onchange="renderAR()">
+            <option value="">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="paid">Paid</option>
+            <option value="overdue">Overdue</option>
+          </select>
+        </div>
+        <div class="card">
+          <table class="tbl">
+            <thead><tr><th>Invoice #</th><th>Customer</th><th>Date</th><th>Amount</th><th>Due Date</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="ar-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── GENERAL LEDGER ── -->
+      <section id="mod-gl" class="panel hidden">
+        <div class="panel-hdr">
+          <h2>📒 General Ledger</h2>
+          <button class="btn-primary" onclick="openModal('m-gl')">+ New Journal Entry</button>
+        </div>
+        <div class="filter-bar">
+          <input type="text" id="gl-q" placeholder="Search entries…" oninput="renderGL()" />
+          <select id="gl-tf" onchange="renderGL()">
+            <option value="">All Types</option>
+            <option value="debit">Debit</option>
+            <option value="credit">Credit</option>
+          </select>
+        </div>
+        <div class="card">
+          <table class="tbl">
+            <thead><tr><th>Entry #</th><th>Date</th><th>Account</th><th>Description</th><th>Debit</th><th>Credit</th><th>Ref</th><th>Actions</th></tr></thead>
+            <tbody id="gl-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── TAX ── -->
+      <section id="mod-tax" class="panel hidden">
+        <div class="panel-hdr">
+          <h2>🧾 Tax Management</h2>
+          <button class="btn-primary" onclick="openModal('m-tax')">+ New Tax Code</button>
+        </div>
+        <div class="stat-row">
+          <div class="stat-card blue"><div class="sv" id="tax-vat">—</div><div class="sl">VAT Collected</div></div>
+          <div class="stat-card green"><div class="sv" id="tax-input">—</div><div class="sl">Input Tax</div></div>
+          <div class="stat-card orange"><div class="sv" id="tax-net">—</div><div class="sl">Net Tax Payable</div></div>
+        </div>
+        <div class="card" style="margin-top:18px">
+          <h3>Tax Codes</h3>
+          <table class="tbl">
+            <thead><tr><th>Code</th><th>Description</th><th>Rate (%)</th><th>Type</th><th>Actions</th></tr></thead>
+            <tbody id="tax-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── FINANCE ── -->
+      <section id="mod-finance" class="panel hidden">
+        <div class="panel-hdr">
+          <h2>📊 Finance</h2>
+          <button class="btn-primary" onclick="openModal('m-fin')">+ New Entry</button>
+        </div>
+        <div class="stat-row">
+          <div class="stat-card blue"><div class="sv" id="fin-rev">—</div><div class="sl">Total Revenue</div></div>
+          <div class="stat-card red"><div class="sv" id="fin-exp">—</div><div class="sl">Total Expenses</div></div>
+          <div class="stat-card green"><div class="sv" id="fin-profit">—</div><div class="sl">Net Profit</div></div>
+          <div class="stat-card orange"><div class="sv" id="fin-budget">—</div><div class="sl">Budget Remaining</div></div>
+        </div>
+        <div class="card" style="margin-top:18px">
+          <h3>Financial Entries</h3>
+          <table class="tbl">
+            <thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Type</th><th>Amount</th><th>Actions</th></tr></thead>
+            <tbody id="fin-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── PROCUREMENT ── -->
+      <section id="mod-procurement" class="panel hidden">
+        <div class="panel-hdr">
+          <h2>🛒 Procurement</h2>
+          <button class="btn-primary" onclick="openModal('m-po')">+ New Purchase Order</button>
+        </div>
+        <div class="filter-bar">
+          <input type="text" id="po-q" placeholder="Search vendor / PO #…" oninput="renderPO()" />
+          <select id="po-sf" onchange="renderPO()">
+            <option value="">All Status</option>
+            <option value="draft">Draft</option>
+            <option value="approved">Approved</option>
+            <option value="received">Received</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div class="card">
+          <table class="tbl">
+            <thead><tr><th>PO #</th><th>Vendor</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="po-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── RECEIVING ── -->
+      <section id="mod-receiving" class="panel hidden">
+        <div class="panel-hdr">
+          <h2>📦 Receiving</h2>
+          <button class="btn-primary" onclick="openModal('m-recv')">+ Goods Receipt</button>
+        </div>
+        <div class="card">
+          <table class="tbl">
+            <thead><tr><th>GR #</th><th>PO Ref</th><th>Vendor</th><th>Date</th><th>Items</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="recv-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── DELIVERY ── -->
+      <section id="mod-delivery" class="panel hidden">
+        <div class="panel-hdr">
+          <h2>🚚 Delivery</h2>
+          <button class="btn-primary" onclick="openModal('m-del')">+ New Shipment</button>
+        </div>
+        <div class="filter-bar">
+          <input type="text" id="del-q" placeholder="Search customer / tracking…" oninput="renderDel()" />
+          <select id="del-sf" onchange="renderDel()">
+            <option value="">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="in-transit">In Transit</option>
+            <option value="delivered">Delivered</option>
+            <option value="returned">Returned</option>
+          </select>
+        </div>
+        <div class="card">
+          <table class="tbl">
+            <thead><tr><th>Shipment #</th><th>Customer</th><th>Order Ref</th><th>Ship Date</th><th>Destination</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="del-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── PRODUCT INVENTORY ── -->
+      <section id="mod-products" class="panel hidden">
+        <div class="panel-hdr">
+          <h2>🏷️ Product Inventory</h2>
+          <button class="btn-primary" onclick="openModal('m-prod')">+ New Product</button>
+        </div>
+        <div class="filter-bar">
+          <input type="text" id="prod-q" placeholder="Search code / name…" oninput="renderProducts()" />
+          <select id="prod-cf" onchange="renderProducts()">
+            <option value="">All Categories</option>
+            <option value="raw">Raw Materials</option>
+            <option value="wip">Work In Progress</option>
+            <option value="finished">Finished Goods</option>
+            <option value="spare">Spare Parts</option>
+          </select>
+        </div>
+        <div class="card">
+          <table class="tbl">
+            <thead><tr><th>Code</th><th>Name</th><th>Category</th><th>Unit</th><th>Price</th><th>Stock</th><th>Reorder Lvl</th><th>Actions</th></tr></thead>
+            <tbody id="prod-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── INVENTORY MANAGEMENT ── -->
+      <section id="mod-inventory" class="panel hidden">
+        <div class="panel-hdr">
+          <h2>🏭 Inventory Management</h2>
+          <button class="btn-primary" onclick="openModal('m-inv')">+ Stock Adjustment</button>
+        </div>
+        <div class="stat-row">
+          <div class="stat-card blue"><div class="sv" id="inv-skus">—</div><div class="sl">Total SKUs</div></div>
+          <div class="stat-card green"><div class="sv" id="inv-val">—</div><div class="sl">Inventory Value</div></div>
+          <div class="stat-card red"><div class="sv" id="inv-low">—</div><div class="sl">Low Stock Alerts</div></div>
+        </div>
+        <div class="card" style="margin-top:18px">
+          <h3>Stock Movements</h3>
+          <table class="tbl">
+            <thead><tr><th>Date</th><th>Product</th><th>Warehouse</th><th>Type</th><th>Qty</th><th>Reference</th><th>Actions</th></tr></thead>
+            <tbody id="inv-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── MARKETING ── -->
+      <section id="mod-marketing" class="panel hidden">
+        <div class="panel-hdr">
+          <h2>📣 Marketing</h2>
+          <button class="btn-primary" onclick="openModal('m-mkt')">+ New Campaign</button>
+        </div>
+        <div class="stat-row">
+          <div class="stat-card blue"><div class="sv" id="mkt-active">—</div><div class="sl">Active Campaigns</div></div>
+          <div class="stat-card green"><div class="sv" id="mkt-leads">—</div><div class="sl">Total Leads</div></div>
+          <div class="stat-card orange"><div class="sv" id="mkt-budget">—</div><div class="sl">Marketing Budget</div></div>
+        </div>
+        <div class="card" style="margin-top:18px">
+          <h3>Campaigns</h3>
+          <table class="tbl">
+            <thead><tr><th>Campaign</th><th>Type</th><th>Start</th><th>End</th><th>Budget</th><th>Leads</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="mkt-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── HUMAN RESOURCES ── -->
+      <section id="mod-hr" class="panel hidden">
+        <div class="panel-hdr">
+          <h2>👥 Human Resources</h2>
+          <button class="btn-primary" onclick="openModal('m-hr')">+ New Employee</button>
+        </div>
+        <div class="filter-bar">
+          <input type="text" id="hr-q" placeholder="Search name / department…" oninput="renderHR()" />
+          <select id="hr-df" onchange="renderHR()">
+            <option value="">All Departments</option>
+            <option value="Finance">Finance</option>
+            <option value="Operations">Operations</option>
+            <option value="Marketing">Marketing</option>
+            <option value="IT">IT</option>
+            <option value="HR">HR</option>
+            <option value="Procurement">Procurement</option>
+            <option value="Warehouse">Warehouse</option>
+          </select>
+        </div>
+        <div class="card">
+          <table class="tbl">
+            <thead><tr><th>Emp ID</th><th>Full Name</th><th>Department</th><th>Position</th><th>Join Date</th><th>Salary</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="hr-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── REPORTS ── -->
+      <section id="mod-reports" class="panel hidden">
+        <div class="panel-hdr"><h2>📈 Reports</h2></div>
+        <div class="reports-grid">
+          <div class="report-card" onclick="genReport('pl')">
+            <div class="rc-icon">📊</div>
+            <h3>Profit &amp; Loss</h3>
+            <p>Revenue vs expenses summary</p>
+          </div>
+          <div class="report-card" onclick="genReport('bs')">
+            <div class="rc-icon">⚖️</div>
+            <h3>Balance Sheet</h3>
+            <p>Assets, liabilities &amp; equity</p>
+          </div>
+          <div class="report-card" onclick="genReport('ap-aging')">
+            <div class="rc-icon">💸</div>
+            <h3>AP Aging</h3>
+            <p>Outstanding payables by due date</p>
+          </div>
+          <div class="report-card" onclick="genReport('ar-aging')">
+            <div class="rc-icon">💰</div>
+            <h3>AR Aging</h3>
+            <p>Outstanding receivables by due date</p>
+          </div>
+          <div class="report-card" onclick="genReport('inv-val')">
+            <div class="rc-icon">🏭</div>
+            <h3>Inventory Valuation</h3>
+            <p>Current stock value by product</p>
+          </div>
+          <div class="report-card" onclick="genReport('tax-sum')">
+            <div class="rc-icon">🧾</div>
+            <h3>Tax Summary</h3>
+            <p>VAT, input tax &amp; net payable</p>
+          </div>
+        </div>
+        <div id="report-out" class="card hidden" style="margin-top:20px">
+          <div id="report-content"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MODALS
+══════════════════════════════════════════ -->
+
+<!-- AP -->
+<div id="m-ap" class="modal hidden">
+  <div class="modal-box">
+    <h2 id="m-ap-title">New Vendor Invoice</h2>
+    <div class="fg2">
+      <div class="fg"><label>Invoice #</label><input id="ap-no" type="text" placeholder="INV-001" /></div>
+      <div class="fg"><label>Vendor</label><input id="ap-vendor" type="text" placeholder="PT. Supplier ABC" /></div>
+      <div class="fg"><label>Invoice Date</label><input id="ap-date" type="date" /></div>
+      <div class="fg"><label>Due Date</label><input id="ap-due" type="date" /></div>
+      <div class="fg"><label>Amount (IDR)</label><input id="ap-amount" type="number" min="0" step="1000" /></div>
+      <div class="fg"><label>Status</label>
+        <select id="ap-status"><option value="pending">Pending</option><option value="paid">Paid</option><option value="overdue">Overdue</option></select>
+      </div>
+      <div class="fg span2"><label>Description</label><input id="ap-desc" type="text" /></div>
+    </div>
+    <input type="hidden" id="ap-eid" />
+    <div class="ma"><button class="btn-primary" onclick="saveAP()">Save</button><button class="btn-sec" onclick="closeModal('m-ap')">Cancel</button></div>
+  </div>
+</div>
+
+<!-- AR -->
+<div id="m-ar" class="modal hidden">
+  <div class="modal-box">
+    <h2 id="m-ar-title">New Customer Invoice</h2>
+    <div class="fg2">
+      <div class="fg"><label>Invoice #</label><input id="ar-no" type="text" placeholder="SINV-001" /></div>
+      <div class="fg"><label>Customer</label><input id="ar-customer" type="text" placeholder="PT. Customer XYZ" /></div>
+      <div class="fg"><label>Invoice Date</label><input id="ar-date" type="date" /></div>
+      <div class="fg"><label>Due Date</label><input id="ar-due" type="date" /></div>
+      <div class="fg"><label>Amount (IDR)</label><input id="ar-amount" type="number" min="0" step="1000" /></div>
+      <div class="fg"><label>Status</label>
+        <select id="ar-status"><option value="pending">Pending</option><option value="paid">Paid</option><option value="overdue">Overdue</option></select>
+      </div>
+      <div class="fg span2"><label>Description</label><input id="ar-desc" type="text" /></div>
+    </div>
+    <input type="hidden" id="ar-eid" />
+    <div class="ma"><button class="btn-primary" onclick="saveAR()">Save</button><button class="btn-sec" onclick="closeModal('m-ar')">Cancel</button></div>
+  </div>
+</div>
+
+<!-- GL -->
+<div id="m-gl" class="modal hidden">
+  <div class="modal-box">
+    <h2 id="m-gl-title">New Journal Entry</h2>
+    <div class="fg2">
+      <div class="fg"><label>Entry #</label><input id="gl-no" type="text" placeholder="JE-001" /></div>
+      <div class="fg"><label>Date</label><input id="gl-date" type="date" /></div>
+      <div class="fg"><label>Account</label><input id="gl-account" type="text" placeholder="Cash &amp; Bank" /></div>
+      <div class="fg"><label>Type</label>
+        <select id="gl-type"><option value="debit">Debit</option><option value="credit">Credit</option></select>
+      </div>
+      <div class="fg"><label>Debit (IDR)</label><input id="gl-debit" type="number" min="0" step="1000" value="0" /></div>
+      <div class="fg"><label>Credit (IDR)</label><input id="gl-credit" type="number" min="0" step="1000" value="0" /></div>
+      <div class="fg"><label>Reference</label><input id="gl-ref" type="text" placeholder="INV-001" /></div>
+      <div class="fg span2"><label>Description</label><input id="gl-desc" type="text" /></div>
+    </div>
+    <input type="hidden" id="gl-eid" />
+    <div class="ma"><button class="btn-primary" onclick="saveGL()">Save</button><button class="btn-sec" onclick="closeModal('m-gl')">Cancel</button></div>
+  </div>
+</div>
+
+<!-- TAX -->
+<div id="m-tax" class="modal hidden">
+  <div class="modal-box">
+    <h2 id="m-tax-title">New Tax Code</h2>
+    <div class="fg2">
+      <div class="fg"><label>Tax Code</label><input id="tax-code" type="text" placeholder="PPN-11" /></div>
+      <div class="fg"><label>Description</label><input id="tax-desc" type="text" placeholder="VAT 11%" /></div>
+      <div class="fg"><label>Rate (%)</label><input id="tax-rate" type="number" min="0" max="100" step="0.01" /></div>
+      <div class="fg"><label>Type</label>
+        <select id="tax-type">
+          <option value="output">Output (VAT Collected)</option>
+          <option value="input">Input (VAT Paid)</option>
+          <option value="withholding">Withholding Tax</option>
+        </select>
+      </div>
+    </div>
+    <input type="hidden" id="tax-eid" />
+    <div class="ma"><button class="btn-primary" onclick="saveTax()">Save</button><button class="btn-sec" onclick="closeModal('m-tax')">Cancel</button></div>
+  </div>
+</div>
+
+<!-- FINANCE -->
+<div id="m-fin" class="modal hidden">
+  <div class="modal-box">
+    <h2 id="m-fin-title">New Finance Entry</h2>
+    <div class="fg2">
+      <div class="fg"><label>Date</label><input id="fin-date" type="date" /></div>
+      <div class="fg"><label>Type</label>
+        <select id="fin-type"><option value="income">Income</option><option value="expense">Expense</option></select>
+      </div>
+      <div class="fg"><label>Category</label>
+        <select id="fin-cat">
+          <option value="sales">Sales Revenue</option>
+          <option value="service">Service Revenue</option>
+          <option value="cogs">Cost of Goods Sold</option>
+          <option value="opex">Operating Expenses</option>
+          <option value="capex">Capital Expenditure</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="fg"><label>Amount (IDR)</label><input id="fin-amount" type="number" min="0" step="1000" /></div>
+      <div class="fg span2"><label>Description</label><input id="fin-desc" type="text" /></div>
+    </div>
+    <input type="hidden" id="fin-eid" />
+    <div class="ma"><button class="btn-primary" onclick="saveFin()">Save</button><button class="btn-sec" onclick="closeModal('m-fin')">Cancel</button></div>
+  </div>
+</div>
+
+<!-- PO -->
+<div id="m-po" class="modal hidden">
+  <div class="modal-box">
+    <h2 id="m-po-title">New Purchase Order</h2>
+    <div class="fg2">
+      <div class="fg"><label>PO #</label><input id="po-no" type="text" placeholder="PO-001" /></div>
+      <div class="fg"><label>Vendor</label><input id="po-vendor" type="text" placeholder="PT. Supplier ABC" /></div>
+      <div class="fg"><label>Date</label><input id="po-date" type="date" /></div>
+      <div class="fg"><label>Status</label>
+        <select id="po-status"><option value="draft">Draft</option><option value="approved">Approved</option><option value="received">Received</option><option value="cancelled">Cancelled</option></select>
+      </div>
+      <div class="fg span2"><label>Items</label><input id="po-items" type="text" placeholder="10x Widget A, 5x Component B" /></div>
+      <div class="fg"><label>Total (IDR)</label><input id="po-total" type="number" min="0" step="1000" /></div>
+      <div class="fg span2"><label>Notes</label><input id="po-notes" type="text" /></div>
+    </div>
+    <input type="hidden" id="po-eid" />
+    <div class="ma"><button class="btn-primary" onclick="savePO()">Save</button><button class="btn-sec" onclick="closeModal('m-po')">Cancel</button></div>
+  </div>
+</div>
+
+<!-- RECEIVING -->
+<div id="m-recv" class="modal hidden">
+  <div class="modal-box">
+    <h2 id="m-recv-title">Goods Receipt</h2>
+    <div class="fg2">
+      <div class="fg"><label>GR #</label><input id="recv-no" type="text" placeholder="GR-001" /></div>
+      <div class="fg"><label>PO Reference</label><input id="recv-po" type="text" placeholder="PO-001" /></div>
+      <div class="fg"><label>Vendor</label><input id="recv-vendor" type="text" /></div>
+      <div class="fg"><label>Date</label><input id="recv-date" type="date" /></div>
+      <div class="fg"><label>Status</label>
+        <select id="recv-status"><option value="partial">Partial</option><option value="complete">Complete</option><option value="rejected">Rejected</option></select>
+      </div>
+      <div class="fg span2"><label>Items Received</label><input id="recv-items" type="text" /></div>
+    </div>
+    <input type="hidden" id="recv-eid" />
+    <div class="ma"><button class="btn-primary" onclick="saveRecv()">Save</button><button class="btn-sec" onclick="closeModal('m-recv')">Cancel</button></div>
+  </div>
+</div>
+
+<!-- DELIVERY -->
+<div id="m-del" class="modal hidden">
+  <div class="modal-box">
+    <h2 id="m-del-title">New Shipment</h2>
+    <div class="fg2">
+      <div class="fg"><label>Shipment #</label><input id="del-no" type="text" placeholder="SHP-001" /></div>
+      <div class="fg"><label>Customer</label><input id="del-customer" type="text" /></div>
+      <div class="fg"><label>Order Ref</label><input id="del-ref" type="text" placeholder="ORD-001" /></div>
+      <div class="fg"><label>Ship Date</label><input id="del-date" type="date" /></div>
+      <div class="fg"><label>Destination</label><input id="del-dest" type="text" placeholder="Jakarta" /></div>
+      <div class="fg"><label>Status</label>
+        <select id="del-status"><option value="pending">Pending</option><option value="in-transit">In Transit</option><option value="delivered">Delivered</option><option value="returned">Returned</option></select>
+      </div>
+    </div>
+    <input type="hidden" id="del-eid" />
+    <div class="ma"><button class="btn-primary" onclick="saveDel()">Save</button><button class="btn-sec" onclick="closeModal('m-del')">Cancel</button></div>
+  </div>
+</div>
+
+<!-- PRODUCT -->
+<div id="m-prod" class="modal hidden">
+  <div class="modal-box">
+    <h2 id="m-prod-title">New Product</h2>
+    <div class="fg2">
+      <div class="fg"><label>Product Code</label><input id="prod-code" type="text" placeholder="PRD-001" /></div>
+      <div class="fg"><label>Product Name</label><input id="prod-name" type="text" /></div>
+      <div class="fg"><label>Category</label>
+        <select id="prod-cat"><option value="raw">Raw Materials</option><option value="wip">Work In Progress</option><option value="finished">Finished Goods</option><option value="spare">Spare Parts</option></select>
+      </div>
+      <div class="fg"><label>Unit</label><input id="prod-unit" type="text" placeholder="pcs / kg" /></div>
+      <div class="fg"><label>Unit Price (IDR)</label><input id="prod-price" type="number" min="0" step="1000" /></div>
+      <div class="fg"><label>Opening Stock</label><input id="prod-stock" type="number" min="0" step="1" /></div>
+      <div class="fg"><label>Reorder Level</label><input id="prod-reorder" type="number" min="0" step="1" /></div>
+      <div class="fg"><label>Warehouse</label><input id="prod-wh" type="text" placeholder="Gudang Utama" /></div>
+    </div>
+    <input type="hidden" id="prod-eid" />
+    <div class="ma"><button class="btn-primary" onclick="saveProd()">Save</button><button class="btn-sec" onclick="closeModal('m-prod')">Cancel</button></div>
+  </div>
+</div>
+
+<!-- INVENTORY -->
+<div id="m-inv" class="modal hidden">
+  <div class="modal-box">
+    <h2>Stock Adjustment</h2>
+    <div class="fg2">
+      <div class="fg"><label>Date</label><input id="inv-date" type="date" /></div>
+      <div class="fg"><label>Product</label><input id="inv-product" type="text" /></div>
+      <div class="fg"><label>Warehouse</label><input id="inv-wh" type="text" placeholder="Gudang Utama" /></div>
+      <div class="fg"><label>Movement Type</label>
+        <select id="inv-type"><option value="in">Stock In</option><option value="out">Stock Out</option><option value="adjustment">Adjustment</option><option value="transfer">Transfer</option></select>
+      </div>
+      <div class="fg"><label>Quantity</label><input id="inv-qty" type="number" min="0" step="1" /></div>
+      <div class="fg"><label>Reference</label><input id="inv-ref" type="text" placeholder="PO-001" /></div>
+    </div>
+    <input type="hidden" id="inv-eid" />
+    <div class="ma"><button class="btn-primary" onclick="saveInv()">Save</button><button class="btn-sec" onclick="closeModal('m-inv')">Cancel</button></div>
+  </div>
+</div>
+
+<!-- MARKETING -->
+<div id="m-mkt" class="modal hidden">
+  <div class="modal-box">
+    <h2 id="m-mkt-title">New Campaign</h2>
+    <div class="fg2">
+      <div class="fg"><label>Campaign Name</label><input id="mkt-name" type="text" /></div>
+      <div class="fg"><label>Type</label>
+        <select id="mkt-type"><option value="digital">Digital</option><option value="event">Event</option><option value="print">Print</option><option value="social">Social Media</option><option value="email">Email</option></select>
+      </div>
+      <div class="fg"><label>Start Date</label><input id="mkt-start" type="date" /></div>
+      <div class="fg"><label>End Date</label><input id="mkt-end" type="date" /></div>
+      <div class="fg"><label>Budget (IDR)</label><input id="mkt-budget-inp" type="number" min="0" step="100000" /></div>
+      <div class="fg"><label>Target Leads</label><input id="mkt-leads-inp" type="number" min="0" step="1" /></div>
+      <div class="fg"><label>Status</label>
+        <select id="mkt-status"><option value="planned">Planned</option><option value="active">Active</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select>
+      </div>
+    </div>
+    <input type="hidden" id="mkt-eid" />
+    <div class="ma"><button class="btn-primary" onclick="saveMkt()">Save</button><button class="btn-sec" onclick="closeModal('m-mkt')">Cancel</button></div>
+  </div>
+</div>
+
+<!-- HR -->
+<div id="m-hr" class="modal hidden">
+  <div class="modal-box">
+    <h2 id="m-hr-title">New Employee</h2>
+    <div class="fg2">
+      <div class="fg"><label>Employee ID</label><input id="hr-empid" type="text" placeholder="EMP-001" /></div>
+      <div class="fg"><label>Full Name</label><input id="hr-name" type="text" /></div>
+      <div class="fg"><label>Department</label>
+        <select id="hr-dept"><option value="Finance">Finance</option><option value="Operations">Operations</option><option value="Marketing">Marketing</option><option value="IT">IT</option><option value="HR">HR</option><option value="Procurement">Procurement</option><option value="Warehouse">Warehouse</option></select>
+      </div>
+      <div class="fg"><label>Position</label><input id="hr-pos" type="text" /></div>
+      <div class="fg"><label>Join Date</label><input id="hr-join" type="date" /></div>
+      <div class="fg"><label>Salary (IDR)</label><input id="hr-salary" type="number" min="0" step="100000" /></div>
+      <div class="fg"><label>Status</label>
+        <select id="hr-status"><option value="active">Active</option><option value="probation">Probation</option><option value="resigned">Resigned</option><option value="terminated">Terminated</option></select>
+      </div>
+    </div>
+    <input type="hidden" id="hr-eid" />
+    <div class="ma"><button class="btn-primary" onclick="saveHR()">Save</button><button class="btn-sec" onclick="closeModal('m-hr')">Cancel</button></div>
+  </div>
+</div>
+
+<!-- Delete Confirm -->
+<div id="m-confirm" class="modal hidden">
+  <div class="modal-box narrow">
+    <h2>⚠️ Confirm Delete</h2>
+    <p id="confirm-msg">Are you sure you want to delete this record?</p>
+    <div class="ma">
+      <button class="btn-danger" id="confirm-yes">Delete</button>
+      <button class="btn-sec" onclick="closeModal('m-confirm')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast hidden"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
