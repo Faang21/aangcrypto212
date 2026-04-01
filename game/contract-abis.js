@@ -16,12 +16,41 @@ window.STARGATE_COMPOSER = {
 
 // ─── LayerZero OFT Adapter Addresses ──────────────────────────────────────
 window.LZ_OFT_ADAPTER = {
-  bnb: '0xeB9eC94F90909A39436A3705BFC5bc2B9e413A87',
+  base:     '0x8C87d57201017FAE4d3415FD5d2DeDB3C02823AE',
+  arbitrum: '0x06017b6D8d907b8A7236F2E984F1e35c00be6983',
+  bnb:      '0xeB9eC94F90909A39436A3705BFC5bc2B9e413A87',
 };
 
 // ─── MOGA Token Addresses ─────────────────────────────────────────────────
 window.mogaAddress = {
-  bnb: '0xeB9eC94F90909A39436A3705BFC5bc2B9e413A87',
+  base:     '0x8C87d57201017FAE4d3415FD5d2DeDB3C02823AE',
+  arbitrum: '0x06017b6D8d907b8A7236F2E984F1e35c00be6983',
+  bnb:      '0xeB9eC94F90909A39436A3705BFC5bc2B9e413A87',
+};
+
+// ─── Supported Networks ───────────────────────────────────────────────────
+window.NETWORKS = {
+  base: {
+    chainId:            '0x2105',
+    chainName:          'Base',
+    nativeCurrency:     { name: 'Ether', symbol: 'ETH', decimals: 18 },
+    rpcUrls:            ['https://mainnet.base.org'],
+    blockExplorerUrls:  ['https://basescan.org'],
+  },
+  arbitrum: {
+    chainId:            '0xA4B1',
+    chainName:          'Arbitrum One',
+    nativeCurrency:     { name: 'Ether', symbol: 'ETH', decimals: 18 },
+    rpcUrls:            ['https://arb1.arbitrum.io/rpc'],
+    blockExplorerUrls:  ['https://arbiscan.io'],
+  },
+  bnb: {
+    chainId:            '0x38',
+    chainName:          'BNB Smart Chain',
+    nativeCurrency:     { name: 'BNB', symbol: 'BNB', decimals: 18 },
+    rpcUrls:            ['https://bsc-dataseed.binance.org'],
+    blockExplorerUrls:  ['https://bscscan.com'],
+  },
 };
 
 // ─── Contract Addresses ────────────────────────────────────────────────────

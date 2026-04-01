@@ -161,6 +161,39 @@ function clearWalletState() {
   renderOnlineList();
 }
 
+// ─── Chain Switching ──────────────────────────────────────────────────────────
+async function switchNetwork(networkKey) {
+  if (!window.ethereum) {
+    showToast("MetaMask not found. Please install MetaMask.");
+    return;
+  }
+  const net = window.NETWORKS && window.NETWORKS[networkKey];
+  if (!net) {
+    showToast("Unknown network: " + networkKey);
+    return;
+  }
+  try {
+    await window.ethereum.request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: net.chainId }],
+    });
+  } catch (err) {
+    // Error 4902: chain not yet added to MetaMask
+    if (err.code === 4902) {
+      try {
+        await window.ethereum.request({
+          method: "wallet_addEthereumChain",
+          params: [net],
+        });
+      } catch (addErr) {
+        showToast("Failed to add network: " + (addErr.message || addErr));
+      }
+    } else {
+      showToast("Failed to switch network: " + (err.message || err));
+    }
+  }
+}
+
 async function connectWallet() {
   if (!window.ethereum) {
     showToast("MetaMask not found. Please install MetaMask.");
@@ -1660,6 +1693,7 @@ document.querySelectorAll(".btn-cancel[data-modal]").forEach(btn => {
 
 // ─── Wire up buttons ──────────────────────────────────────────────────────────
 document.getElementById("btn-connect").addEventListener("click", connectWallet);
+document.getElementById("select-chain").addEventListener("change", e => switchNetwork(e.target.value));
 document.getElementById("btn-city1").addEventListener("click", () => switchCity(1));
 document.getElementById("btn-city2").addEventListener("click", () => switchCity(2));
 document.getElementById("btn-set-nickname").addEventListener("click", () => {
