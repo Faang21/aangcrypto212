@@ -6,9 +6,8 @@
  * other chains (Base, Arbitrum).
  *
  * Usage:
- *   npx hardhat run scripts/setPeerOFT.js --network bnb
+ *   npx hardhat run scripts/setPeerOFT.js --network bsc
  *   npx hardhat run scripts/setPeerOFT.js --network base
- *   npx hardhat run scripts/setPeerOFT.js --network arbitrum
  *   npx hardhat run scripts/setPeerOFT.js --network arbitrumOne
  *   npx hardhat run scripts/setPeerOFT.js --network educhain
  *
@@ -16,8 +15,7 @@
  *   PRIVATE_KEY  – deployer / owner private key
  *
  * LayerZero v2 endpoint IDs:
- *   Ethereum  30101
- *   BNB       30102
+ *   BSC       30102
  *   Base      30184
  *   Arbitrum  30110
  *   EDUChain  30328
@@ -35,9 +33,8 @@ const OFT_ABI = [
 
 // ─── LayerZero v2 Endpoint IDs ────────────────────────────────────────────────
 const EID = {
-  bnb:         30102,
+  bsc:         30102,
   base:        30184,
-  arbitrum:    30110,
   arbitrumOne: 30110,
   educhain:    30328,
 };
@@ -45,9 +42,8 @@ const EID = {
 // ─── Deployed OFT / OFTAdapter addresses per chain ───────────────────────────
 //   Replace these with the actual deployed addresses for each network.
 const OFT_ADDRESS = {
-  bnb:         "0xeB9eC94F90909A39436A3705BFC5bc2B9e413A87",
+  bsc:         "0xeB9eC94F90909A39436A3705BFC5bc2B9e413A87",
   base:        "0x83296cbE860C2471f2ae3E75Ab8e99Cc2B7434e3",
-  arbitrum:    "0x8C9d56537E753f688bD968CC12384E5A52F75361",
   arbitrumOne: "0x8C9d56537E753f688bD968CC12384E5A52F75361",
   educhain:    "0x3AAd0Edc9c27A9CcEacDe3072bc8B11c2E4996Af",
 };
@@ -56,11 +52,10 @@ const OFT_ADDRESS = {
 //   Key   = network you are currently running the script on
 //   Value = array of remote networks whose OFT addresses should be set as peers
 const PEER_MAP = {
-  bnb:         ["base", "arbitrum", "educhain"],
-  base:        ["bnb",  "arbitrum", "educhain"],
-  arbitrum:    ["bnb",  "base",     "educhain"],
-  arbitrumOne: ["bnb",  "base",     "educhain"],
-  educhain:    ["bnb",  "base",     "arbitrum"],
+  bsc:         ["base", "arbitrumOne", "educhain"],
+  base:        ["bsc",  "arbitrumOne", "educhain"],
+  arbitrumOne: ["bsc",  "base",        "educhain"],
+  educhain:    ["bsc",  "base",        "arbitrumOne"],
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
