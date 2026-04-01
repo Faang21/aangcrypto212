@@ -22,6 +22,10 @@ module.exports = {
       url: process.env.BNB_RPC_URL || "https://bsc-dataseed.binance.org/",
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : []
     },
+    bsc: {
+      url: process.env.BNB_RPC_URL || "https://bsc-dataseed.binance.org/",
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : []
+    },
     base: {
       url: process.env.BASE_RPC_URL || "https://mainnet.base.org",
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : []
