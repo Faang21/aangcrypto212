@@ -11,6 +11,17 @@
 window.STARGATE_COMPOSER = {
   base: '0x8C87d57201017FAE4d3415FD5d2DeDB3C02823AE',
   arbitrum: '0x06017b6D8d907b8A7236F2E984F1e35c00be6983',
+  bnb: '0x72Fb82C857089ee387A0b912802A53a2c696f8FE',
+};
+
+// ─── LayerZero OFT Adapter Addresses ──────────────────────────────────────
+window.LZ_OFT_ADAPTER = {
+  bnb: '0xeB9eC94F90909A39436A3705BFC5bc2B9e413A87',
+};
+
+// ─── MOGA Token Addresses ─────────────────────────────────────────────────
+window.mogaAddress = {
+  bnb: '0xeB9eC94F90909A39436A3705BFC5bc2B9e413A87',
 };
 
 // ─── Contract Addresses ────────────────────────────────────────────────────
