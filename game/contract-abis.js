@@ -7,6 +7,12 @@
  * The full ABI arrays below match the Solidity contracts in ../contracts/.
  */
 
+// ─── Cross-Chain (Stargate) Addresses ─────────────────────────────────────
+window.STARGATE_COMPOSER = {
+  base: '0x8C87d57201017FAE4d3415FD5d2DeDB3C02823AE',
+  arbitrum: '0x06017b6D8d907b8A7236F2E984F1e35c00be6983',
+};
+
 // ─── Contract Addresses ────────────────────────────────────────────────────
 // These are populated by scripts/deploy.js at deploy-time (contract-addresses.json).
 // For local dev you can also hardcode them here.
