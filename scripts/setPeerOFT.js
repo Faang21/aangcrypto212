@@ -9,6 +9,8 @@
  *   npx hardhat run scripts/setPeerOFT.js --network bnb
  *   npx hardhat run scripts/setPeerOFT.js --network base
  *   npx hardhat run scripts/setPeerOFT.js --network arbitrum
+ *   npx hardhat run scripts/setPeerOFT.js --network arbitrumOne
+ *   npx hardhat run scripts/setPeerOFT.js --network educhain
  *
  * Environment variables:
  *   PRIVATE_KEY  – deployer / owner private key
@@ -18,6 +20,7 @@
  *   BNB       30102
  *   Base      30184
  *   Arbitrum  30110
+ *   EDUChain  30328
  */
 
 const hre = require("hardhat");
@@ -32,26 +35,32 @@ const OFT_ABI = [
 
 // ─── LayerZero v2 Endpoint IDs ────────────────────────────────────────────────
 const EID = {
-  bnb:      30102,
-  base:     30184,
-  arbitrum: 30110,
+  bnb:         30102,
+  base:        30184,
+  arbitrum:    30110,
+  arbitrumOne: 30110,
+  educhain:    30328,
 };
 
 // ─── Deployed OFT / OFTAdapter addresses per chain ───────────────────────────
 //   Replace these with the actual deployed addresses for each network.
 const OFT_ADDRESS = {
-  bnb:      "0xeB9eC94F90909A39436A3705BFC5bc2B9e413A87",
-  base:     "0x8C87d57201017FAE4d3415FD5d2DeDB3C02823AE",
-  arbitrum: "0x06017b6D8d907b8A7236F2E984F1e35c00be6983",
+  bnb:         "0xeB9eC94F90909A39436A3705BFC5bc2B9e413A87",
+  base:        "0x83296cbE860C2471f2ae3E75Ab8e99Cc2B7434e3",
+  arbitrum:    "0x8C9d56537E753f688bD968CC12384E5A52F75361",
+  arbitrumOne: "0x8C9d56537E753f688bD968CC12384E5A52F75361",
+  educhain:    "0x3AAd0Edc9c27A9CcEacDe3072bc8B11c2E4996Af",
 };
 
 // ─── Peer config: for each network, which remote chains to register ───────────
 //   Key   = network you are currently running the script on
 //   Value = array of remote networks whose OFT addresses should be set as peers
 const PEER_MAP = {
-  bnb:      ["base", "arbitrum"],
-  base:     ["bnb",  "arbitrum"],
-  arbitrum: ["bnb",  "base"],
+  bnb:         ["base", "arbitrum", "educhain"],
+  base:        ["bnb",  "arbitrum", "educhain"],
+  arbitrum:    ["bnb",  "base",     "educhain"],
+  arbitrumOne: ["bnb",  "base",     "educhain"],
+  educhain:    ["bnb",  "base",     "arbitrum"],
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -103,10 +112,11 @@ async function main() {
   // Sanity-check: confirm the signer is the owner
   const owner = await oft.owner();
   if (owner.toLowerCase() !== signer.address.toLowerCase()) {
-    throw new Error(
-      `Signer ${signer.address} is not the contract owner (${owner}).  ` +
-      `Only the owner can call setPeer().`
+    console.warn(
+      `  [SKIP] Signer ${signer.address} is not the contract owner (${owner}).  ` +
+      `Only the owner can call setPeer().  Skipping ${network}.`
     );
+    return;
   }
 
   for (const remote of PEER_MAP[network]) {
@@ -134,8 +144,8 @@ async function main() {
       await tx.wait();
       console.log(`         confirmed ✓`);
     } catch (err) {
-      throw new Error(
-        `Failed to set peer for "${remote}" (eid=${remoteEid}): ${err.message}`
+      console.warn(
+        `  [WARN] Failed to set peer for "${remote}" (eid=${remoteEid}): ${err.message}`
       );
     }
   }
