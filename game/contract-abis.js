@@ -7,49 +7,59 @@
  * The full ABI arrays below match the Solidity contracts in ../contracts/.
  */
 
-// ─── Cross-Chain (Stargate) Addresses ─────────────────────────────────────
+// ─── Cross-Chain (Stargate / Composer) Addresses ──────────────────────────
 window.STARGATE_COMPOSER = {
-  base: '0x8C87d57201017FAE4d3415FD5d2DeDB3C02823AE',
-  arbitrum: '0x06017b6D8d907b8A7236F2E984F1e35c00be6983',
-  bnb: '0x72Fb82C857089ee387A0b912802A53a2c696f8FE',
-};
-
-// ─── LayerZero OFT Adapter Addresses ──────────────────────────────────────
-window.LZ_OFT_ADAPTER = {
   base:     '0x8C87d57201017FAE4d3415FD5d2DeDB3C02823AE',
   arbitrum: '0x06017b6D8d907b8A7236F2E984F1e35c00be6983',
+  bnb:      '0x72Fb82C857089ee387A0b912802A53a2c696f8FE',
+  edu:      '0xb907bd6B17C571ef3eb8485328293fCA438336af',
+};
+
+// ─── LayerZero OFT Adapter (MogaOFT) Addresses ────────────────────────────
+window.LZ_OFT_ADAPTER = {
+  base:     '0x83296cbE860C2471f2ae3E75Ab8e99Cc2B7434e3',
+  arbitrum: '0x8C9d56537E753f688bD968CC12384E5A52F75361',
   bnb:      '0xeB9eC94F90909A39436A3705BFC5bc2B9e413A87',
+  edu:      '0x3AAd0Edc9c27A9CcEacDe3072bc8B11c2E4996Af',
 };
 
 // ─── MOGA Token Addresses ─────────────────────────────────────────────────
 window.mogaAddress = {
-  base:     '0x8C87d57201017FAE4d3415FD5d2DeDB3C02823AE',
-  arbitrum: '0x06017b6D8d907b8A7236F2E984F1e35c00be6983',
+  base:     '0x83296cbE860C2471f2ae3E75Ab8e99Cc2B7434e3',
+  arbitrum: '0x8C9d56537E753f688bD968CC12384E5A52F75361',
   bnb:      '0xeB9eC94F90909A39436A3705BFC5bc2B9e413A87',
+  edu:      '0x3AAd0Edc9c27A9CcEacDe3072bc8B11c2E4996Af',
 };
 
 // ─── Supported Networks ───────────────────────────────────────────────────
 window.NETWORKS = {
   base: {
-    chainId:            '0x2105',
+    chainId:            '0x2105',       // 8453
     chainName:          'Base',
     nativeCurrency:     { name: 'Ether', symbol: 'ETH', decimals: 18 },
     rpcUrls:            ['https://mainnet.base.org'],
     blockExplorerUrls:  ['https://basescan.org'],
   },
   arbitrum: {
-    chainId:            '0xA4B1',
+    chainId:            '0xA4B1',       // 42161
     chainName:          'Arbitrum One',
     nativeCurrency:     { name: 'Ether', symbol: 'ETH', decimals: 18 },
     rpcUrls:            ['https://arb1.arbitrum.io/rpc'],
     blockExplorerUrls:  ['https://arbiscan.io'],
   },
   bnb: {
-    chainId:            '0x38',
+    chainId:            '0x38',         // 56
     chainName:          'BNB Smart Chain',
     nativeCurrency:     { name: 'BNB', symbol: 'BNB', decimals: 18 },
     rpcUrls:            ['https://bsc-dataseed.binance.org'],
     blockExplorerUrls:  ['https://bscscan.com'],
+  },
+  edu: {
+    chainId:            '0xa045c',      // 656476
+    chainName:          'EDU Chain',
+    nativeCurrency:     { name: 'EDU', symbol: 'EDU', decimals: 18 },
+    rpcUrls:            ['https://rpc.open-campus-codex.gelato.digital'],
+    blockExplorerUrls:  ['https://opencampus-codex.blockscout.com'],
   },
 };
 

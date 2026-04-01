@@ -162,6 +162,8 @@ function clearWalletState() {
 }
 
 // ─── Chain Switching ──────────────────────────────────────────────────────────
+const METAMASK_CHAIN_NOT_ADDED_ERROR = 4902;
+
 async function switchNetwork(networkKey) {
   if (!window.ethereum) {
     showToast("MetaMask not found. Please install MetaMask.");
@@ -178,8 +180,8 @@ async function switchNetwork(networkKey) {
       params: [{ chainId: net.chainId }],
     });
   } catch (err) {
-    // Error 4902: chain not yet added to MetaMask
-    if (err.code === 4902) {
+    // Chain not yet added to MetaMask – prompt to add it
+    if (err.code === METAMASK_CHAIN_NOT_ADDED_ERROR) {
       try {
         await window.ethereum.request({
           method: "wallet_addEthereumChain",
