@@ -6,10 +6,8 @@
  * other chains (Base, Arbitrum).
  *
  * Usage:
- *   npx hardhat run scripts/setPeerOFT.js --network mainnet
- *   npx hardhat run scripts/setPeerOFT.js --network bnb
+ *   npx hardhat run scripts/setPeerOFT.js --network bsc
  *   npx hardhat run scripts/setPeerOFT.js --network base
- *   npx hardhat run scripts/setPeerOFT.js --network arbitrum
  *   npx hardhat run scripts/setPeerOFT.js --network arbitrumOne
  *   npx hardhat run scripts/setPeerOFT.js --network educhain
  *
@@ -17,8 +15,7 @@
  *   PRIVATE_KEY  – deployer / owner private key
  *
  * LayerZero v2 endpoint IDs:
- *   Ethereum  30101
- *   BNB       30102
+ *   BSC       30102
  *   Base      30184
  *   Arbitrum  30110
  *   EDUChain  30328
@@ -36,10 +33,8 @@ const OFT_ABI = [
 
 // ─── LayerZero v2 Endpoint IDs ────────────────────────────────────────────────
 const EID = {
-  mainnet:     30101,
-  bnb:         30102,
+  bsc:         30102,
   base:        30184,
-  arbitrum:    30110,
   arbitrumOne: 30110,
   educhain:    30328,
 };
@@ -47,10 +42,8 @@ const EID = {
 // ─── Deployed OFT / OFTAdapter addresses per chain ───────────────────────────
 //   Replace these with the actual deployed addresses for each network.
 const OFT_ADDRESS = {
-  mainnet:     "0x0000000000000000000000000000000000000000", // TODO: replace with Ethereum mainnet OFT address
-  bnb:         "0xeB9eC94F90909A39436A3705BFC5bc2B9e413A87",
+  bsc:         "0xeB9eC94F90909A39436A3705BFC5bc2B9e413A87",
   base:        "0x83296cbE860C2471f2ae3E75Ab8e99Cc2B7434e3",
-  arbitrum:    "0x8C9d56537E753f688bD968CC12384E5A52F75361",
   arbitrumOne: "0x8C9d56537E753f688bD968CC12384E5A52F75361",
   educhain:    "0x3AAd0Edc9c27A9CcEacDe3072bc8B11c2E4996Af",
 };
@@ -59,12 +52,10 @@ const OFT_ADDRESS = {
 //   Key   = network you are currently running the script on
 //   Value = array of remote networks whose OFT addresses should be set as peers
 const PEER_MAP = {
-  mainnet:     ["bnb",  "base",     "arbitrum", "educhain"],
-  bnb:         ["mainnet", "base",  "arbitrum", "educhain"],
-  base:        ["mainnet", "bnb",   "arbitrum", "educhain"],
-  arbitrum:    ["mainnet", "bnb",   "base",     "educhain"],
-  arbitrumOne: ["mainnet", "bnb",   "base",     "educhain"],
-  educhain:    ["mainnet", "bnb",   "base",     "arbitrum"],
+  bsc:         ["base", "arbitrumOne", "educhain"],
+  base:        ["bsc",  "arbitrumOne", "educhain"],
+  arbitrumOne: ["bsc",  "base",        "educhain"],
+  educhain:    ["bsc",  "base",        "arbitrumOne"],
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -107,14 +98,6 @@ async function main() {
     );
   }
 
-  const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
-  if (OFT_ADDRESS[network].toLowerCase() === ZERO_ADDRESS) {
-    throw new Error(
-      `OFT address for network "${network}" is still set to the zero address placeholder.  ` +
-      `Replace it with the actual deployed OFT contract address in OFT_ADDRESS.`
-    );
-  }
-
   const [signer] = await ethers.getSigners();
   console.log(`Network  : ${network}`);
   console.log(`Signer   : ${signer.address}`);
@@ -135,8 +118,8 @@ async function main() {
     const remoteEid     = EID[remote];
     const remoteAddress = OFT_ADDRESS[remote];
 
-    if (!remoteEid || !remoteAddress || remoteAddress.toLowerCase() === ZERO_ADDRESS) {
-      console.warn(`  [SKIP] Missing or placeholder EID/address for remote "${remote}"`);
+    if (!remoteEid || !remoteAddress) {
+      console.warn(`  [SKIP] Missing EID or address for remote "${remote}"`);
       continue;
     }
 
